@@ -1,27 +1,86 @@
-use std::{any::Any, collections::{HashMap, HashSet}, sync::{Arc, Mutex}};
-
-use crate::{node::{EdgepointId, Node, NodeId}};
+use std::{any::Any, collections::{HashMap, HashSet}, fmt::Debug, hash::Hash, sync::{Arc, Mutex}};
+use uuid::Uuid;
 
 mod meta;
-pub use meta::{Meta, Quality};
+pub use meta::*;
+
+pub mod node;
+pub use node::Node;
+
+mod id;
+pub use id::*;
+
+#[derive(Debug)]
+struct GraphEdge {
+    source: Vertex,
+    target: Vertex,
+}
+
+#[derive(Debug)]
+struct EdgepointRef {
+    id: EdgepointId,
+    vertex: Arc<Vertex>,
+}
+
+impl EdgepointRef {
+    pub fn clone(&self) -> Self {
+        Self {
+            id: self.id,
+            vertex: self.vertex.clone()
+        }
+    }
+}
+
+#[derive(Debug)]
+struct Vertex {
+    node: Box<dyn Node>,
+
+    inbound: HashMap<EdgepointRef, EdgepointRef>,
+    outbount: HashMap<EdgepointRef, Vec<EdgepointRef>>,
+}
+
+impl Vertex {
+    pub fn new(node: Box<dyn Node>) -> Self {
+        Self {
+            node,
+
+            inbound: HashMap::new(),
+            outbount: HashMap::new(),
+        }
+    }
+}
 
 /// A graph contains nodes,
+#[derive(Debug)]
 pub struct Graph {
-    nodes: HashMap<NodeId, Box<dyn Node>>,
-    edges: HashSet<(EdgepointId, EdgepointId)>,
+    /// Nodes
+    vertex: HashMap<NodeId, Arc<Vertex>>,
 }
 
 impl Graph {
     pub fn new() -> Self {
         Self {
-            nodes: HashMap::new(),
-            edges: HashSet::new(),
+            vertex: HashMap::new(),
         }
     }
 
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self {
+            vertex: HashMap::with_capacity(capacity)
+        }
+    }
+
+    pub fn contains(&self, key: &NodeId) -> bool {
+        self.vertex.contains_key(key)
+    }
+}
+
+impl Graph {
     pub fn insert(&mut self, node: Box<dyn Node>) -> NodeId {
-        let id = NodeId::new();
-        self.nodes.insert(id, node);
+        let id = NodeId::new_node();
+        let vertex = Vertex::new(node);
+
+        self.vertex.insert(id, Arc::new(vertex));
         id
     }
 
@@ -29,25 +88,24 @@ impl Graph {
 
         // self.edges.insert()
 
+        dbg!(matches!(output_edgepoint, EdgepointId::GraphInput(_)));
+
     }
 
     pub fn evaluate(&self) {
-        for (id, node) in &self.nodes {
-            if node.should_run_if_leaf() {
-                node.evaluate(None, Box::new("oui!".to_string()), Meta {
-                    quality: Quality::Balanced,
-                    tick: 5
-                });
-            }
-        }
+        // for (id, node) in &self.nodes {
+        //         node.evaluate(None, Box::new("oui!".to_string()), Meta {
+        //             quality: Quality::Balanced,
+        //             tick: 5
+        //         });
+        //     }
+        // }
     }
 }
 
 struct LasyInputs {
     node_id: NodeId,
     graph: Arc<Mutex<Graph>>,
-    inputs: HashMap<EdgepointId, Box<dyn Any>>,
-
 }
 
 impl LasyInputs {
