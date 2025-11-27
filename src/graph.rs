@@ -11,36 +11,39 @@ mod id;
 pub use id::*;
 
 #[derive(Debug)]
-struct GraphEdge {
-    source: Vertex,
-    target: Vertex,
+struct NodeHandle {
+    node: Arc<Box<dyn Node>>,
 }
 
-#[derive(Debug)]
-struct EdgepointRef {
-    id: EdgepointId,
-    vertex: Arc<Vertex>,
-}
-
-impl EdgepointRef {
-    pub fn clone(&self) -> Self {
+impl NodeHandle {
+    pub fn new(node: Box<dyn Node>) -> Self {
         Self {
-            id: self.id,
-            vertex: self.vertex.clone()
+            node: Arc::new(node),
         }
     }
 }
 
+// #[derive(Debug)]
+// struct Edge {
+//     source: InoutId,
+//     target: Vec<InoutId>,
+// }
+
+/// A vertex is a conceptual representation of either :
+/// - A node
+/// - The graph inputs or outputs
+///
+/// This is well represented by [`VertexId`]
 #[derive(Debug)]
 struct Vertex {
-    node: Box<dyn Node>,
+    node: NodeHandle,
 
-    inbound: HashMap<EdgepointRef, EdgepointRef>,
-    outbount: HashMap<EdgepointRef, Vec<EdgepointRef>>,
+    inbound: HashMap<InoutId, InoutId>,
+    outbount: HashMap<InoutId, Vec<InoutId>>,
 }
 
 impl Vertex {
-    pub fn new(node: Box<dyn Node>) -> Self {
+    pub fn new(node: NodeHandle) -> Self {
         Self {
             node,
 
@@ -53,43 +56,43 @@ impl Vertex {
 /// A graph contains nodes,
 #[derive(Debug)]
 pub struct Graph {
-    /// Nodes
-    vertex: HashMap<NodeId, Arc<Vertex>>,
+    vertices: HashMap<NodeId, Vertex>,
 }
 
 impl Graph {
     pub fn new() -> Self {
         Self {
-            vertex: HashMap::new(),
+            vertices: HashMap::new(),
         }
     }
 
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
-            vertex: HashMap::with_capacity(capacity)
+            vertices: HashMap::with_capacity(capacity)
         }
     }
 
     pub fn contains(&self, key: &NodeId) -> bool {
-        self.vertex.contains_key(key)
+        self.vertices.contains_key(key)
     }
 }
 
 impl Graph {
     pub fn insert(&mut self, node: Box<dyn Node>) -> NodeId {
-        let id = NodeId::new_node();
-        let vertex = Vertex::new(node);
+        let id = NodeId::new();
+        self.vertices.insert(
+            id,
+            Vertex::new(NodeHandle::new(node))
+        );
 
-        self.vertex.insert(id, Arc::new(vertex));
         id
     }
 
-    pub fn patch(&mut self, output_edgepoint: EdgepointId, input_edgepoint: EdgepointId) {
+    pub fn patch(&mut self, output_edgepoint: InoutId, input_edgepoint: InoutId) {
 
         // self.edges.insert()
 
-        dbg!(matches!(output_edgepoint, EdgepointId::GraphInput(_)));
-
+        dbg!(output_edgepoint, input_edgepoint);
     }
 
     pub fn evaluate(&self) {
@@ -104,7 +107,7 @@ impl Graph {
 }
 
 struct LasyInputs {
-    node_id: NodeId,
+    node_id: VertexId,
     graph: Arc<Mutex<Graph>>,
 }
 

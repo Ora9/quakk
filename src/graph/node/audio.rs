@@ -1,6 +1,6 @@
 use std::any::Any;
 
-use crate::{EdgepointId, Meta, Node};
+use crate::{InoutId, Meta, Node};
 
 #[derive(Debug, Hash)]
 pub enum OscEdgepoints {
@@ -21,7 +21,7 @@ impl Node for Osc {
         "Osc"
     }
 
-    fn evaluate(&self, output_id: Option<EdgepointId>, input: Box<dyn Any>, meta: Meta) {
+    fn evaluate(&self, output_id: Option<InoutId>, input: Box<dyn Any>, meta: Meta) {
         dbg!(self.title());
 
         dbg!(output_id);
