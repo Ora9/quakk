@@ -51,7 +51,7 @@ struct Vertex {
     node: NodeHandle,
 
     inbound: HashMap<InoutId, InoutId>,
-    outbount: HashMap<InoutId, Vec<InoutId>>,
+    outbount: HashMap<InoutId, HashSet<InoutId>>,
 }
 
 impl Vertex {
