@@ -1,12 +1,14 @@
-use quack::{Graph, Node, node::NumericValue, };
+use quack::{Graph, Node, node::{Multiply, Number}, };
 
 fn main() {
     let mut graph = Graph::new();
 
-    let numvalue = graph.insert(Box::new(NumericValue::new()));
+    let number = graph.insert(Box::new(Number::new()));
+    let mult = graph.insert(Box::new(Multiply::new()));
 
     dbg!(&graph);
-    dbg!(numvalue);
+    dbg!(mult);
+    dbg!(number);
 
     // graph.evaluate();
 }

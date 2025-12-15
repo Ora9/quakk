@@ -1,6 +1,6 @@
 use std::{any::Any, fmt::Debug};
 
-use crate::{InoutId, Meta, NodeInoutId};
+use crate::{GraphInoutId, Meta, NodeInoutId};
 
 // pub mod audio;
 pub mod numeric;
@@ -11,9 +11,55 @@ pub use numeric::*;
 
 pub trait Node: Debug {
     fn title(&self) -> &str;
-    fn evaluate(&self, output_id: Option<InoutId>, input: Box<dyn Any>, meta: Meta);
+    fn evaluate(&self, output_id: Option<GraphInoutId>, input: Box<dyn Any>, meta: Meta);
 
     fn id_for(&self, inout_name: &str) -> Option<NodeInoutId>;
 
     fn new() -> Self where Self: Sized;
 }
+
+// #[derive(Debug, PartialEq, Eq, Hash)]
+// enum WeightedAverageInout {
+//     Output,
+//     InWeigth(usize),
+//     InData(usize),
+// }
+
+// #[derive(Debug)]
+// pub struct WeightedAverage {
+//     // inout_ids: HashMap<NumericValueInout, NodeInoutId>,
+// }
+
+// impl Node for WeightedAverage {
+//     fn new() -> Self {
+//         // let mut inout_ids = HashMap::new();
+
+//         // for inout in NumericValueInout::iter() {
+//         //     dbg!(&inout);
+//         //     inout_ids.insert(inout, NodeInoutId::new());
+//         // };
+
+//         Self {
+//             // inout_ids: inout_ids,
+//         }
+//     }
+
+//     fn id_for(&self, inout_name: &str) -> Option<GraphInoutId> {
+//     //     if let Ok(inout_enum) = NumericValueInout::from_str(inout_name) {
+//     //         self.inout_ids.get(&inout_enum).cloned()
+//     //     } else {
+//             None
+//         // }
+//     }
+
+//     fn title(&self) -> &str {
+//         "Weighted Average"
+//     }
+
+//     fn evaluate(&self, output_id: Option<GraphInoutId>, input: Box<dyn Any>, meta: Meta) {
+//         dbg!(self.title());
+
+//         dbg!(output_id);
+//         dbg!(meta);
+//     }
+// }

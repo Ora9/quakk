@@ -1,52 +1,69 @@
 use std::{any::Any, collections::HashMap, str::FromStr};
 use strum::IntoEnumIterator;
 
-use crate::{InoutId, Meta, Node, NodeInoutId};
+use crate::{GraphInoutId, Meta, Node, NodeInoutId};
 
-#[derive(Debug, PartialEq, Eq, Hash, strum::EnumIter, strum::EnumString)]
-pub enum NumericValueInout {
+#[derive(Debug, PartialEq, Eq, Hash)]
+enum NumberInout {
     Output
 }
 
-#[derive(Debug)]
-pub struct NumericValue {
+#[derive(Debug, Default)]
+pub struct Number {
     value: f32,
-
-    inout_ids: HashMap<NumericValueInout, NodeInoutId>,
 }
 
-impl Node for NumericValue {
+impl Node for Number {
     fn new() -> Self {
-        let mut inout_ids = HashMap::new();
-
-        for inout in NumericValueInout::iter() {
-            dbg!(&inout);
-            inout_ids.insert(inout, NodeInoutId::new());
-        };
-
-        Self {
-            value: Default::default(),
-            inout_ids: inout_ids,
-        }
+        Self::default()
     }
 
     fn id_for(&self, inout_name: &str) -> Option<NodeInoutId> {
-        if let Ok(inout_enum) = NumericValueInout::from_str(inout_name) {
-            self.inout_ids.get(&inout_enum).cloned()
-        } else {
-            None
+        match inout_name {
+            "out" => Some(NodeInoutId::new(inout_name)),
+            _ => None,
         }
     }
 
     fn title(&self) -> &str {
-        "String Value"
+        "Number"
     }
 
-    fn evaluate(&self, output_id: Option<InoutId>, input: Box<dyn Any>, meta: Meta) {
+    fn evaluate(&self, output_id: Option<GraphInoutId>, input: Box<dyn Any>, meta: Meta) {
         dbg!(self.title());
 
         dbg!(output_id);
         dbg!(meta);
+    }
+}
 
+#[derive(Debug, PartialEq, Eq, Hash)]
+enum MultiplyInout {
+    Term1,
+    Term2,
+    Out,
+}
+
+#[derive(Debug)]
+pub struct Multiply();
+
+impl Node for Multiply {
+    fn new() -> Self {
+        Self()
+    }
+
+    fn evaluate(&self, output_id: Option<GraphInoutId>, input: Box<dyn Any>, meta: Meta) {
+        dbg!(self.title());
+    }
+
+    fn title(&self) -> &str {
+        "Multiply"
+    }
+
+    fn id_for(&self, inout_name: &str) -> Option<NodeInoutId> {
+        match inout_name {
+            "term1" | "term2" | "out" => Some(NodeInoutId::new(inout_name)),
+            _ => None,
+        }
     }
 }

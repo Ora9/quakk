@@ -30,8 +30,11 @@ impl NodeHandle {
         }
     }
 
-    pub fn id_for(inout_name: &str) -> Option<InoutId> {
-        None
+    pub fn id_for(&self, inout_name: &str) -> Option<GraphInoutId> {
+        self.node.id_for(inout_name)
+            .and_then(|node_inout_id| {
+                Some(GraphInoutId::new_node_inout_id(self.id, node_inout_id))
+            })
     }
 }
 
@@ -50,8 +53,8 @@ impl NodeHandle {
 struct Vertex {
     node: NodeHandle,
 
-    inbound: HashMap<InoutId, InoutId>,
-    outbount: HashMap<InoutId, HashSet<InoutId>>,
+    inbound: HashMap<GraphInoutId, GraphInoutId>,
+    outbount: HashMap<GraphInoutId, HashSet<GraphInoutId>>,
 }
 
 impl Vertex {
@@ -102,7 +105,7 @@ impl Graph {
         node_handle
     }
 
-    pub fn patch(&mut self, output_edgepoint: InoutId, input_edgepoint: InoutId) {
+    pub fn patch(&mut self, output_edgepoint: GraphInoutId, input_edgepoint: GraphInoutId) {
 
         // self.edges.insert()
 
@@ -121,7 +124,7 @@ impl Graph {
 }
 
 struct LasyInputs {
-    node_id: VertexId,
+    node_id: NodeId,
     graph: Arc<Mutex<Graph>>,
 }
 
