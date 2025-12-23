@@ -9,13 +9,23 @@ pub struct HashId {
 }
 
 impl HashId {
-    /// Get a new unique id
+    /// Get a new random unique id
+    /// ```
+    /// # use quack::HashId;
+    /// assert_ne!(HashId::new(), HashId::new());
+    /// ```
     pub fn new() -> Self {
         Self {
             id: RandomState::new().build_hasher().finish(),
         }
     }
 
+    /// Get a new unique id based on a string input
+    /// ```
+    /// # use quack::HashId;
+    /// assert_eq!(HashId::new_with("test"), HashId::new_with("test"));
+    /// assert_ne!(HashId::new_with("test"), HashId::new_with("other"));
+    /// ```
     pub fn new_with(input: &str) -> Self {
         let mut hasher = DefaultHasher::new();
         hasher.write(input.as_bytes());
@@ -42,16 +52,6 @@ impl Default for HashId {
         Self::new()
     }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-
-//     #[test]
-//     fn () {
-//         assert_eq!(function_one(), "hello");
-//     }
-// }
 
 /// A node id, used by the [`Graph`] through structs [`VertexId`] and [`InoutId`]
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
