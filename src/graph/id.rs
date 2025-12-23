@@ -1,9 +1,9 @@
-use std::hash::{BuildHasher, DefaultHasher, Hasher, RandomState};
+use std::{fmt::Debug, hash::{BuildHasher, DefaultHasher, Hasher, RandomState}};
 
 use uuid::Uuid;
 
 /// A unique id, used for [`NodeId`], [`InoutId`]
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(PartialEq, Eq, Clone, Copy, Hash)]
 pub struct HashId {
     id: u64,
 }
@@ -44,6 +44,12 @@ impl HashId {
         let mut out = Self::display(self);
         out.truncate(out.floor_char_boundary(12));
         out
+    }
+}
+
+impl Debug for HashId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:#x}", self.id)
     }
 }
 
