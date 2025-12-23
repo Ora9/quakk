@@ -36,10 +36,8 @@ impl NodeHandle {
         }
     }
 
-    pub fn id_for(&self, inout_name: &str) -> Option<GraphInoutId> {
-        self.node
-            .id_for(inout_name)
-            .and_then(|node_inout_id| Some(GraphInoutId::new_node_inout_id(self.id, node_inout_id)))
+    pub fn id_for(&self, inout_name: &str) -> Option<InoutId> {
+        self.node.id_for(inout_name, self.id)
     }
 }
 
@@ -53,8 +51,8 @@ impl NodeHandle {
 struct Vertex {
     node: NodeHandle,
 
-    inbound: HashMap<GraphInoutId, GraphInoutId>,
-    outbount: HashMap<GraphInoutId, HashSet<GraphInoutId>>,
+    inbound: HashMap<InoutId, InoutId>,
+    outbount: HashMap<InoutId, HashSet<InoutId>>,
 }
 
 impl Vertex {
@@ -74,6 +72,7 @@ pub struct Graph {
     vertices: HashMap<NodeId, Vertex>,
 }
 
+/// # Graph creation
 impl Graph {
     pub fn new() -> Self {
         Self {
@@ -92,9 +91,10 @@ impl Graph {
     }
 }
 
+/// # Node management
 impl Graph {
     pub fn insert(&mut self, node: Box<dyn Node>) -> NodeHandle {
-        let id = NodeId::new();
+        let id = NodeId::new_node();
         let node_handle = NodeHandle::new(id, node);
 
         self.vertices.insert(id, Vertex::new(node_handle.clone()));
@@ -102,12 +102,15 @@ impl Graph {
         node_handle
     }
 
-    pub fn patch(&mut self, output_edgepoint: GraphInoutId, input_edgepoint: GraphInoutId) {
+    pub fn patch(&mut self, output_edgepoint: InoutId, input_edgepoint: InoutId) {
         // self.edges.insert()
 
         dbg!(output_edgepoint, input_edgepoint);
     }
+}
 
+/// # Graph evaluation
+impl Graph {
     pub fn evaluate(&self) {
         // for (id, node) in &self.nodes {
         //         node.evaluate(None, Box::new("oui!".to_string()), Meta {
@@ -116,6 +119,12 @@ impl Graph {
         //         });
         //     }
         // }
+    }
+}
+
+impl Default for Graph {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

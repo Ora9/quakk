@@ -1,7 +1,7 @@
 use std::{any::Any, collections::HashMap, str::FromStr};
 use strum::IntoEnumIterator;
 
-use crate::{GraphInoutId, Meta, Node, NodeInoutId};
+use crate::{HashId, InoutId, Meta, Node, NodeId};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 enum NumberInout {
@@ -18,9 +18,9 @@ impl Node for Number {
         Self::default()
     }
 
-    fn id_for(&self, inout_name: &str) -> Option<NodeInoutId> {
+    fn id_for(&self, inout_name: &str, node_id: NodeId) -> Option<InoutId> {
         match inout_name {
-            "out" => Some(NodeInoutId::new(inout_name)),
+            "out" => Some(InoutId::Out(node_id, HashId::new_with("out"))),
             _ => None,
         }
     }
@@ -29,7 +29,7 @@ impl Node for Number {
         "Number"
     }
 
-    fn evaluate(&self, output_id: Option<GraphInoutId>, input: Box<dyn Any>, meta: Meta) {
+    fn evaluate(&self, output_id: Option<InoutId>, input: Box<dyn Any>, meta: Meta) {
         dbg!(self.title());
 
         dbg!(output_id);
@@ -52,7 +52,7 @@ impl Node for Multiply {
         Self()
     }
 
-    fn evaluate(&self, output_id: Option<GraphInoutId>, input: Box<dyn Any>, meta: Meta) {
+    fn evaluate(&self, output_id: Option<InoutId>, input: Box<dyn Any>, meta: Meta) {
         dbg!(self.title());
     }
 
@@ -60,9 +60,10 @@ impl Node for Multiply {
         "Multiply"
     }
 
-    fn id_for(&self, inout_name: &str) -> Option<NodeInoutId> {
+    fn id_for(&self, inout_name: &str, node_id: NodeId) -> Option<InoutId> {
         match inout_name {
-            "term1" | "term2" | "out" => Some(NodeInoutId::new(inout_name)),
+            "term1" | "term2" => Some(InoutId::In(node_id, HashId::new_with(inout_name))),
+            "out" => Some(InoutId::In(node_id, HashId::new_with(inout_name))),
             _ => None,
         }
     }
