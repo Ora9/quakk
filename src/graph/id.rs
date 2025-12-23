@@ -17,8 +17,12 @@ impl HashId {
     }
 
     pub fn new_with(input: &str) -> Self {
+        let mut hasher = DefaultHasher::new();
+        hasher.write(input.as_bytes());
+        hasher.write_u8(0xff);
+
         Self {
-            id: RandomState::new().hash_one(input),
+            id: hasher.finish()
         }
     }
 
