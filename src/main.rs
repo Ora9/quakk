@@ -16,7 +16,7 @@ fn main() {
     dbg!(&mult.id_for("term1"));
     dbg!(&mult.id_for("term2"));
 
-    // graph.patch(number.id_for("out"), mult.id_for("term1"));
+    let _ = graph.patch(number.id_for("out").unwrap(), mult.id_for("term1").unwrap());
 
     // graph.evaluate();
 }

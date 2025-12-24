@@ -1,4 +1,7 @@
-use std::{fmt::Debug, hash::{BuildHasher, DefaultHasher, Hasher, RandomState}};
+use std::{
+    fmt::Debug,
+    hash::{BuildHasher, DefaultHasher, Hasher, RandomState},
+};
 
 
 /// A unique id, used for [`NodeId`], [`InoutId`]
@@ -31,7 +34,7 @@ impl HashId {
         hasher.write_u8(0xff);
 
         Self {
-            id: hasher.finish()
+            id: hasher.finish(),
         }
     }
 
@@ -94,7 +97,7 @@ impl NodeId {
 
 /// Each input or output (`inout`) in the graph have a specific id, that is
 /// either inout of a node, or of the graph itself
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub enum InoutId {
     In(NodeId, HashId),
     Out(NodeId, HashId),
