@@ -62,11 +62,21 @@ impl Default for HashId {
 }
 
 /// A node id, used by the [`Graph`] through structs [`VertexId`] and [`InoutId`]
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(PartialEq, Eq, Clone, Copy, Hash)]
 pub enum NodeId {
     GraphIn,
     GraphOut,
     Node(HashId),
+}
+
+impl Debug for NodeId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            NodeId::GraphIn => write!(f, "GraphIn"),
+            NodeId::GraphOut => write!(f, "GraphOut"),
+            NodeId::Node(hash_id) => write!(f, "Node({hash_id:?})"),
+        }
+    }
 }
 
 impl NodeId {
@@ -81,7 +91,7 @@ impl NodeId {
 
 /// Each input or output (`inout`) in the graph have a specific id, that is
 /// either inout of a node, or of the graph itself
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(PartialEq, Eq, Clone, Copy, Hash)]
 pub enum InoutId {
     In(NodeId, HashId),
     Out(NodeId, HashId),
@@ -99,6 +109,15 @@ impl InoutId {
         match self {
             Self::In(node_id, _) => *node_id,
             Self::Out(node_id, _) => *node_id,
+        }
+    }
+}
+
+impl Debug for InoutId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            InoutId::In(node_id, hash_id) => write!(f, "In({node_id:?}>{hash_id:?}"),
+            InoutId::Out(node_id, hash_id) => write!(f, "Out({node_id:?}>{hash_id:?}"),
         }
     }
 }
