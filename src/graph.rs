@@ -72,6 +72,7 @@ pub struct Graph {
 
 /// # Graph creation
 impl Graph {
+    /// Initilize a new graph, with graph in and out special nodes
     pub fn new() -> Self {
         let mut graph = Self {
             vertices: HashMap::with_capacity(2),
