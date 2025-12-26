@@ -16,6 +16,9 @@ pub use node::Node;
 mod id;
 pub use id::*;
 
+/// `NodeHandle` is a cheaply cloned reference to a node
+///
+/// This struct is returned when inserting a [`Node`] into a [`Graph`]
 #[derive(Debug, Clone)]
 pub struct NodeHandle {
     id: NodeId,
@@ -36,11 +39,18 @@ impl NodeHandle {
         }
     }
 
+    /// Given a string identifier, will return an [`InoutId`] if the node recognise
+    /// it as a valid in/out name
+    ///
+    /// The format and convention around said identifier is not formalised yet,
+    /// but will be eventually
     pub fn id_for(&self, inout_name: &str) -> Option<InoutId> {
         self.node.id_for(inout_name, self.id)
     }
 }
 
+/// `Vertex` is an item in the graph, it holds a [`NodeHandle`], but also all
+/// inbound and outbound connection of the node
 #[derive(Debug)]
 struct Vertex {
     node_handle: NodeHandle,
@@ -60,7 +70,7 @@ impl Vertex {
     }
 }
 
-/// A graph contains nodes,
+/// A `Graph` hold nodes and handle all connections (patches)
 #[derive(Debug)]
 pub struct Graph {
     vertices: HashMap<NodeId, Vertex>,
@@ -68,7 +78,8 @@ pub struct Graph {
 
 /// # Graph creation
 impl Graph {
-    /// Initilize a new graph, with graph in and out special nodes
+    /// Return a new and initialized graph, holding two specials [`Node`]s :
+    /// `GraphIn` and `GraphOut`
     pub fn new() -> Self {
         let mut graph = Self {
             vertices: HashMap::with_capacity(2),
@@ -80,6 +91,7 @@ impl Graph {
         graph
     }
 
+    /// Does the graph contain a [`Node`] with the given [`NodeId`]
     pub fn contains(&self, key: &NodeId) -> bool {
         self.vertices.contains_key(key)
     }
