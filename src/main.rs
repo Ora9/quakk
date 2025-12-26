@@ -1,5 +1,5 @@
 use quack_sth::{
-    Graph, Node,
+    Graph, Node, NodeId,
     node::{Multiply, Number},
 };
 
@@ -18,7 +18,14 @@ fn main() {
         number_b.id_for("out").unwrap(),
         mult.id_for("term2").unwrap(),
     );
-    // let _ = graph.patch(mult.id_for("out"), quack::InoutId::), mult.id_for("term1").unwrap());
+
+    let _ = graph.patch(
+        mult.id_for("out").unwrap(),
+        graph
+            .out_handle()
+            .id_for("number_out")
+            .unwrap(),
+    );
 
     // dbg!(&mult);
     // dbg!(&number_a);

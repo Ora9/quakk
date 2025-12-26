@@ -112,6 +112,20 @@ impl Graph {
             }
         }
     }
+
+    pub fn handle_for_id(&self, node_id: NodeId) -> Option<NodeHandle> {
+        self.vertices.get(&node_id).and_then(|vertex| {
+            Some(vertex.node_handle.clone())
+        })
+    }
+
+    pub fn in_handle(&self) -> NodeHandle {
+        self.handle_for_id(NodeId::GraphIn).unwrap()
+    }
+
+    pub fn out_handle(&self) -> NodeHandle {
+        self.handle_for_id(NodeId::GraphOut).unwrap()
+    }
 }
 
 #[cfg(test)]
@@ -236,9 +250,11 @@ impl Node for GraphOut {
 
 // /// # Graph ins and outs
 // impl Graph {
-//     pub fn id_for(&self, ) -> InoutId {
-//
+//     pub fn graph_in_handle(&self) -> NodeHandle {
+
 //     }
+
+
 // }
 
 /// # Graph evaluation
