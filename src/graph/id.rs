@@ -27,7 +27,7 @@ impl HashId {
     /// assert_eq!(HashId::new_with("test"), HashId::new_with("test"));
     /// assert_ne!(HashId::new_with("test"), HashId::new_with("other"));
     /// ```
-    pub fn new_with(input: &str) -> Self {
+    pub fn new_from(input: &str) -> Self {
         let mut hasher = DefaultHasher::new();
         hasher.write(input.as_bytes());
         hasher.write_u8(0xff);
@@ -83,8 +83,8 @@ impl NodeId {
         Self::Node(HashId::new())
     }
 
-    pub fn new_node_with(input: &str) -> Self {
-        Self::Node(HashId::new_with(input))
+    pub fn new_node_from(input: &str) -> Self {
+        Self::Node(HashId::new_from(input))
     }
 }
 
@@ -92,31 +92,76 @@ impl NodeId {
 /// either inout of a node, or of the graph itself
 #[derive(PartialEq, Eq, Clone, Copy, Hash)]
 pub enum InoutId {
-    In(NodeId, HashId),
-    Out(NodeId, HashId),
+    In(HashId),
+    Out(HashId),
 }
 
 impl InoutId {
+    pub fn new_in_from(inout_name: &str) -> Self {
+        Self::In(HashId::new_from(inout_name))
+    }
+
+    pub fn new_out_from(inout_name: &str) -> Self {
+        Self::Out(HashId::new_from(inout_name))
+    }
+
     // /// Return a new random `inout` (input or output) for a node
     // pub fn new_node_in_id(node_id: NodeId, inout_id: NodeInoutId) -> Self {
     //     Self::NodeInout(node_id, inout_id)
     // }
 
-    /// Return `Some(NodeId)` if Self::NodeEdgepoint or None
-    /// Return `Some([NodeId])` if edgepoint is attached to a node, or `None` if not
-    pub fn node_id(&self) -> NodeId {
-        match self {
-            Self::In(node_id, _) => *node_id,
-            Self::Out(node_id, _) => *node_id,
-        }
-    }
+    // /// Return `Some(NodeId)` if Self::NodeEdgepoint or None
+    // /// Return `Some([NodeId])` if edgepoint is attached to a node, or `None` if not
+    // pub fn node_id(&self) -> NodeId {
+    //     match self {
+    //         Self::In(node_id, _) => *node_id,
+    //         Self::Out(node_id, _) => *node_id,
+    //     }
+    // }
 }
 
 impl Debug for InoutId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            InoutId::In(node_id, hash_id) => write!(f, "In({node_id:?}>{hash_id:?}"),
-            InoutId::Out(node_id, hash_id) => write!(f, "Out({node_id:?}>{hash_id:?}"),
+            InoutId::In(hash_id) => write!(f, "In({hash_id:?}"),
+            InoutId::Out(hash_id) => write!(f, "Out({hash_id:?}"),
         }
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Copy, Hash)]
+pub struct NodeInoutId {
+    node_id: NodeId,
+    inout_id: InoutId,
+}
+
+impl NodeInoutId {
+    pub fn new(node_id: NodeId, inout_id: InoutId) -> Self {
+        Self {
+            inout_id,
+            node_id,
+        }
+    }
+
+    pub fn new_in_from(node_id: NodeId, inout_name: &str) -> Self {
+        Self::new(node_id, InoutId::new_in_from(inout_name))
+    }
+
+    pub fn new_out_from(node_id: NodeId, inout_name: &str) -> Self {
+        Self::new(node_id, InoutId::new_out_from(inout_name))
+    }
+
+    pub fn node_id(&self) -> NodeId {
+        self.node_id
+    }
+
+    pub fn inout_id(&self) -> InoutId {
+        self.inout_id
+    }
+}
+
+impl Debug for NodeInoutId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}>{:?}", self.node_id(), self.inout_id())
     }
 }

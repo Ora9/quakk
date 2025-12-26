@@ -17,9 +17,9 @@ impl Node for Number {
         Self::default()
     }
 
-    fn id_for(&self, inout_name: &str, node_id: NodeId) -> Option<InoutId> {
+    fn id_for(&self, inout_name: &str) -> Option<InoutId> {
         match inout_name {
-            "out" => Some(InoutId::Out(node_id, HashId::new_with("out"))),
+            "out" => Some(InoutId::new_out_from("out")),
             _ => None,
         }
     }
@@ -59,10 +59,10 @@ impl Node for Multiply {
         "Multiply"
     }
 
-    fn id_for(&self, inout_name: &str, node_id: NodeId) -> Option<InoutId> {
+    fn id_for(&self, inout_name: &str) -> Option<InoutId> {
         match inout_name {
-            "term1" | "term2" => Some(InoutId::In(node_id, HashId::new_with(inout_name))),
-            "out" => Some(InoutId::In(node_id, HashId::new_with(inout_name))),
+            "term1" | "term2" => Some(InoutId::new_in_from(inout_name)),
+            "out" => Some(InoutId::new_in_from(inout_name)),
             _ => None,
         }
     }

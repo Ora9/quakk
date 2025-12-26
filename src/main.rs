@@ -21,7 +21,7 @@ fn main() {
 
     let _ = graph.patch(
         mult.id_for("out").unwrap(),
-        graph.out_id_for("number_out").unwrap(),
+        graph.graph_out_id_for("number_out").unwrap(),
     );
 
     // dbg!(&mult);

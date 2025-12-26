@@ -1,6 +1,6 @@
 use std::{any::Any, fmt::Debug};
 
-use crate::{InoutId, Meta, NodeId};
+use crate::{HashId, InoutId, Meta, NodeId, NodeInoutId};
 
 // pub mod audio;
 pub mod numeric;
@@ -13,7 +13,13 @@ pub trait Node: Debug {
     fn title(&self) -> &str;
     fn evaluate(&self, output_id: Option<InoutId>, input: Box<dyn Any>, meta: Meta);
 
-    fn id_for(&self, inout_name: &str, node_id: NodeId) -> Option<InoutId>;
+    fn node_inout_id_for(&self, inout_name: &str, node_id: NodeId) -> Option<NodeInoutId> {
+        self.id_for(inout_name).and_then(|inout_id| {
+            Some(NodeInoutId::new(node_id, inout_id))
+        })
+    }
+
+    fn id_for(&self, inout_name: &str) -> Option<InoutId>;
 
     fn new() -> Self
     where

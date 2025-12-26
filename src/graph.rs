@@ -47,8 +47,8 @@ impl NodeHandle {
     ///
     /// The format and convention around said identifier is not formalised yet,
     /// but will be eventually
-    pub fn id_for(&self, inout_name: &str) -> Option<InoutId> {
-        self.node.id_for(inout_name, self.id)
+    pub fn id_for(&self, inout_name: &str) -> Option<NodeInoutId> {
+        self.node.node_inout_id_for(inout_name, self.id)
     }
 }
 
@@ -58,8 +58,8 @@ impl NodeHandle {
 struct Vertex {
     node_handle: NodeHandle,
 
-    inbound: HashMap<InoutId, InoutId>,
-    outbound: HashMap<InoutId, HashSet<InoutId>>,
+    inbound: HashMap<NodeInoutId, NodeInoutId>,
+    outbound: HashMap<NodeInoutId, HashSet<NodeInoutId>>,
 }
 
 impl Vertex {
@@ -134,21 +134,21 @@ impl Graph {
         })
     }
 
-    pub fn in_handle(&self) -> NodeHandle {
+    pub fn graph_in_handle(&self) -> NodeHandle {
         self.handle_for_id(NodeId::GraphIn).expect("A graph must always have a `GraphIn` node")
     }
 
-    pub fn out_handle(&self) -> NodeHandle {
+    pub fn graph_out_handle(&self) -> NodeHandle {
         self.handle_for_id(NodeId::GraphOut).expect("A graph must always have a `GraphOut` node")
 
     }
 
-    pub fn in_id_for(&self, inout_name: &str) -> Option<InoutId> {
-        self.in_handle().id_for(inout_name)
+    pub fn graph_in_id_for(&self, inout_name: &str) -> Option<NodeInoutId> {
+        self.graph_in_handle().id_for(inout_name)
     }
 
-    pub fn out_id_for(&self, inout_name: &str) -> Option<InoutId> {
-        self.out_handle().id_for(inout_name)
+    pub fn graph_out_id_for(&self, inout_name: &str) -> Option<NodeInoutId> {
+        self.graph_out_handle().id_for(inout_name)
     }
 }
 
@@ -174,7 +174,7 @@ mod tests {
 
 /// # Graph patching
 impl Graph {
-    pub fn patch(&mut self, out_id: InoutId, in_id: InoutId) -> Result<(), anyhow::Error> {
+    pub fn patch(&mut self, out_id: NodeInoutId, in_id: NodeInoutId) -> Result<(), anyhow::Error> {
         self.vertices
             .get_mut(&out_id.node_id())
             .context("The given `out` node does not exists")?
@@ -192,7 +192,7 @@ impl Graph {
         Ok(())
     }
 
-    pub fn unpatch(&mut self, out_id: InoutId, in_id: InoutId) -> Result<(), anyhow::Error> {
+    pub fn unpatch(&mut self, out_id: NodeInoutId, in_id: NodeInoutId) -> Result<(), anyhow::Error> {
         self.vertices
             .get_mut(&out_id.node_id())
             .context("The given `out` node does not exists")?
@@ -210,7 +210,7 @@ impl Graph {
         Ok(())
     }
 
-    pub fn unpatch_inout(&mut self, inout_id: InoutId) -> Result<(), anyhow::Error> {
+    pub fn unpatch_inout(&mut self, inout_id: NodeInoutId) -> Result<(), anyhow::Error> {
         Ok(())
     }
 
@@ -226,9 +226,9 @@ impl Node for GraphIn {
         Self
     }
 
-    fn id_for(&self, inout_name: &str, node_id: NodeId) -> Option<InoutId> {
+    fn id_for(&self, inout_name: &str) -> Option<InoutId> {
         match inout_name {
-            "number_in" => Some(InoutId::Out(node_id, HashId::new_with("number_in"))),
+            "number_in" => Some(InoutId::new_in_from("number_in")),
             _ => None,
         }
     }
@@ -253,9 +253,9 @@ impl Node for GraphOut {
         Self
     }
 
-    fn id_for(&self, inout_name: &str, node_id: NodeId) -> Option<InoutId> {
+    fn id_for(&self, inout_name: &str) -> Option<InoutId> {
         match inout_name {
-            "number_out" => Some(InoutId::Out(node_id, HashId::new_with("number_out"))),
+            "number_out" => Some(InoutId::new_in_from("number_out")),
             _ => None,
         }
     }
