@@ -1,9 +1,35 @@
+//! Quack uses a few differents types of identifiers for nodes and their ins and outs :
+//! - [`NodeId`] : to identify a unique node in a graph
+//! - [`InoutName`] : to identify an specific "inout" (in or out of a node),
+//!   but does not inlude
+//! - [`NodeInoutName`] : to identify a specific "inout" of a specific node
+//!
+//! All of these rely on [`HashId`] which is a simple hash, either randomly determined, or based on a string
+//!
+//! ```text
+//!      ┌─────────────┐
+//!      │ NodeInoutId │
+//!      └──┬───────┬──┘
+//!         ▼       ▼
+//!  ┌────────┐   ┌─────────┐
+//!  │ NodeId │   │ InoutId │
+//!  └──────┬─┘   └─┬───────┘
+//!         ▼       ▼
+//!      ┌────────────┐
+//!      │   HashId   │
+//!      └────────────┘
+//! ```
+//!
+
 use std::{
     fmt::Debug,
     hash::{BuildHasher, DefaultHasher, Hasher, RandomState},
 };
 
-/// A unique id, used for [`NodeId`], [`InoutId`]
+/// A simple hash, used for [`NodeId`], [`InoutId`]
+///
+/// Internaly `HashId` is an u64 hash, either a based on a string, or randomly
+/// determined
 #[derive(PartialEq, Eq, Clone, Copy, Hash)]
 pub struct HashId {
     id: u64,
@@ -60,7 +86,8 @@ impl Default for HashId {
     }
 }
 
-/// A node id, used by the [`Graph`] through structs [`VertexId`] and [`InoutId`]
+/// A [`Node`](quack_sth::Node) id
+/// used by the [`Graph`](quack_sth::Graph)
 #[derive(PartialEq, Eq, Clone, Copy, Hash)]
 pub enum NodeId {
     GraphIn,
