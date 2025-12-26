@@ -120,11 +120,20 @@ impl Graph {
     }
 
     pub fn in_handle(&self) -> NodeHandle {
-        self.handle_for_id(NodeId::GraphIn).unwrap()
+        self.handle_for_id(NodeId::GraphIn).expect("A graph must always have a `GraphIn` node")
     }
 
     pub fn out_handle(&self) -> NodeHandle {
-        self.handle_for_id(NodeId::GraphOut).unwrap()
+        self.handle_for_id(NodeId::GraphOut).expect("A graph must always have a `GraphOut` node")
+
+    }
+
+    pub fn in_id_for(&self, inout_name: &str) -> Option<InoutId> {
+        self.in_handle().id_for(inout_name)
+    }
+
+    pub fn out_id_for(&self, inout_name: &str) -> Option<InoutId> {
+        self.out_handle().id_for(inout_name)
     }
 }
 

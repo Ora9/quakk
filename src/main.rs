@@ -1,5 +1,5 @@
 use quack_sth::{
-    Graph, Node, NodeId,
+    Graph, Node,
     node::{Multiply, Number},
 };
 
@@ -21,10 +21,7 @@ fn main() {
 
     let _ = graph.patch(
         mult.id_for("out").unwrap(),
-        graph
-            .out_handle()
-            .id_for("number_out")
-            .unwrap(),
+        graph.out_id_for("number_out").unwrap(),
     );
 
     // dbg!(&mult);
