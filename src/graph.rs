@@ -27,7 +27,10 @@ pub struct NodeHandle {
 }
 
 impl NodeHandle {
-    pub fn new(
+    /// Given a [`Node`] and its [`NodeId`], return a new `NodeHandle`,
+    /// this is not destined to be called by users, but by the [`Graph`] when
+    /// inserting a new node
+    fn new(
         node_id: NodeId,
         node: Box<dyn Node>,
         // graph: Arc<Mutex<Graph>>
