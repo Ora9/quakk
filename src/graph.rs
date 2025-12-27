@@ -16,7 +16,7 @@ pub use node::Node;
 mod id;
 pub use id::*;
 
-use crate::{LasyExecutor};
+use crate::LasyExecutor;
 
 /// `NodeHandle` is a cheaply cloned reference to a node
 ///
@@ -65,7 +65,7 @@ impl NodeHandle {
 /// `Vertex` is an item in the graph, it holds a [`NodeHandle`], but also all
 /// inbound and outbound connection of the node
 #[derive(Debug)]
-struct Vertex {
+pub(crate) struct Vertex {
     node_handle: NodeHandle,
 
     inbound: HashMap<InoutId, NodeInoutId>,
@@ -82,20 +82,20 @@ impl Vertex {
         }
     }
 
-    fn inbound(self) -> HashMap<InoutId, NodeInoutId> {
-        self.inbound
+    // fn inbound(self) -> HashMap<InoutId, NodeInoutId> {
+    //     self.inbound
+    // }
+
+    // fn outbound(self) -> HashMap<InoutId, HashSet<NodeInoutId>> {
+    //     self.outbound
+    // }
+
+    pub fn inbound_for(&self, in_id: InoutId) -> Option<&NodeInoutId> {
+        self.inbound.get(&in_id)
     }
 
-    fn outbound(self) -> HashMap<InoutId, HashSet<NodeInoutId>> {
-        self.outbound
-    }
-
-    fn inbound_for(&self, inout_id: InoutId) -> Option<&NodeInoutId> {
-        self.inbound.get(&inout_id)
-    }
-
-    fn outbound_for(&self, inout_id: InoutId) -> Option<&HashSet<NodeInoutId>> {
-        self.outbound.get(&inout_id)
+    pub fn outbound_for(&self, out_id: InoutId) -> Option<&HashSet<NodeInoutId>> {
+        self.outbound.get(&out_id)
     }
 }
 
@@ -119,11 +119,6 @@ impl Graph {
 
         graph
     }
-
-    /// Does the graph contain a [`Node`] with the given [`NodeId`]
-    pub fn contains(&self, key: &NodeId) -> bool {
-        self.vertices.contains_key(key)
-    }
 }
 
 /// # Node insertion / removal
@@ -132,7 +127,8 @@ impl Graph {
     /// return a [`NodeHandle`]
     pub fn insert_with_id(&mut self, node: Box<dyn Node>, node_id: NodeId) -> NodeHandle {
         let node_handle = NodeHandle::new(node_id, node);
-        self.vertices.insert(node_id, Vertex::new(node_handle.clone()));
+        self.vertices
+            .insert(node_id, Vertex::new(node_handle.clone()));
 
         node_handle
     }
@@ -154,19 +150,29 @@ impl Graph {
         }
     }
 
+    /// Does the graph contain a [`Node`] with the given [`NodeId`]
+    pub fn contains(&self, key: &NodeId) -> bool {
+        self.vertices.contains_key(key)
+    }
+
     pub fn handle_for_id(&self, node_id: NodeId) -> Option<NodeHandle> {
-        self.vertices.get(&node_id).and_then(|vertex| {
-            Some(vertex.node_handle.clone())
-        })
+        self.vertices
+            .get(&node_id)
+            .and_then(|vertex| Some(vertex.node_handle.clone()))
+    }
+
+    pub(crate) fn vertex_for_id(&self, node_id: NodeId) -> Option<&Vertex> {
+        self.vertices.get(&node_id)
     }
 
     pub fn graph_in_handle(&self) -> NodeHandle {
-        self.handle_for_id(NodeId::GraphIn).expect("A graph must always have a `GraphIn` node")
+        self.handle_for_id(NodeId::GraphIn)
+            .expect("A graph must always have a `GraphIn` node")
     }
 
     pub fn graph_out_handle(&self) -> NodeHandle {
-        self.handle_for_id(NodeId::GraphOut).expect("A graph must always have a `GraphOut` node")
-
+        self.handle_for_id(NodeId::GraphOut)
+            .expect("A graph must always have a `GraphOut` node")
     }
 
     pub fn graph_in_id_for(&self, in_name: &str) -> Option<NodeInoutId> {
@@ -218,7 +224,11 @@ impl Graph {
         Ok(())
     }
 
-    pub fn unpatch(&mut self, out_id: NodeInoutId, in_id: NodeInoutId) -> Result<(), anyhow::Error> {
+    pub fn unpatch(
+        &mut self,
+        out_id: NodeInoutId,
+        in_id: NodeInoutId,
+    ) -> Result<(), anyhow::Error> {
         self.vertices
             .get_mut(&out_id.node_id())
             .context("The given `out` node does not exists")?
@@ -300,13 +310,13 @@ impl Node for GraphOut {
 
 /// # Graph evaluation
 impl Graph {
-    pub fn evaluate(&self, out_id: InoutId, lasy_executor: LasyExecutor, meta: Meta) {
+    // pub fn evaluate(&self, out_id: InoutId, lasy_executor: LasyExecutor, meta: Meta) {
 
-        let out_handle = self.graph_out_handle();
-        dbg!(out_id, out_handle);
+    //     let out_handle = self.graph_out_handle();
+    //     dbg!(out_id, out_handle);
 
-        // self.graph_out_handle().node().evaluate(output_id, input, meta);
-    }
+    //     lasy_executor.get()
+    // }
 }
 
 impl Default for Graph {

@@ -4,6 +4,7 @@
 mod graph;
 use std::sync::{Arc, Mutex};
 
+use anyhow::Context;
 pub use graph::*;
 
 mod lasy;
@@ -12,7 +13,6 @@ pub use lasy::*;
 #[derive(Debug)]
 pub struct Quack {
     pub graph: Arc<Mutex<Graph>>,
-    pub lasy_executor: LasyExecutor,
     pub base_meta: Meta,
 }
 
@@ -21,7 +21,6 @@ impl Quack {
         let graph = Arc::new(Mutex::new(Graph::new()));
 
         Self {
-            lasy_executor: LasyExecutor::new(graph.clone()),
             base_meta: Meta {
                 quality: Quality::Balanced,
                 tick: 0,
@@ -31,7 +30,19 @@ impl Quack {
         }
     }
 
-    pub fn evaluate_for(&self, inout_name: &str) {
-        self.lasy_executor.evaluate_for(inout_name, self.base_meta);
+    pub fn evaluate_for(&self, out_name: &str) -> Result<(), anyhow::Error> {
+        // self.lasy_executor.evaluate_for(out_name, self.base_meta);
+        let out_id = {
+            self.graph
+                .lock()
+                .expect("the graph has been poisoned, who is it ?!")
+                .graph_out_id_for(out_name)
+                .context("out name not found for this graph")?
+        };
+
+        let lasy_executor = LasyExecutor::new(out_id.node_id(), self.graph.clone());
+        lasy_executor.get_from(out_id.inout_id(), self.base_meta);
+
+        Ok(())
     }
 }

@@ -2,7 +2,7 @@ use std::sync::{Arc, Mutex};
 
 use anyhow::Context;
 
-use crate::{Graph, Meta};
+use crate::{Graph, InoutId, Meta, NodeId};
 
 /// `LasyExecutor` is the executor of Quack, constructed with a reference to the graph, it is responsible for
 /// evaluating all needed nodes, handling their ins and outs
@@ -14,27 +14,42 @@ use crate::{Graph, Meta};
 /// - Recursively traverse the graph
 #[derive(Debug, Clone)]
 pub struct LasyExecutor {
+    node_id: NodeId,
     graph: Arc<Mutex<Graph>>,
 }
 
 impl LasyExecutor {
-    pub fn new(graph: Arc<Mutex<Graph>>) -> Self {
-        Self { graph }
+    pub fn new(node_id: NodeId, graph: Arc<Mutex<Graph>>) -> Self {
+        Self { node_id, graph }
     }
 
-    pub(crate) fn evaluate_for(&self, out_name: &str, meta: Meta) -> Result<(), anyhow::Error> {
-        dbg!(out_name, meta);
+    pub fn get_from(&self, in_id: InoutId, meta: Meta) -> Option<f32> {
+        dbg!(in_id);
 
-        let graph = self.graph.lock().expect("the graph is inaccessible");
-        let out_id = graph
-            .graph_out_id_for(out_name)
-            .context("out name not found for this graph")?
-            .inout_id();
+        let (inbound_node, inbound_out_id) = {
+            let graph = self.graph.lock().unwrap();
+            let inbound_out_id = graph
+                .vertex_for_id(self.node_id)
+                .expect("Cannot find the given node")
+                .inbound_for(in_id)?
+                .to_owned();
 
-        graph.evaluate(out_id, self.clone(), meta);
+            (
+                graph.handle_for_id(inbound_out_id.node_id())?,
+                inbound_out_id,
+            )
+        };
 
-        Ok(())
+        inbound_node.node().evaluate(
+            inbound_out_id.inout_id(),
+            LasyExecutor::new(inbound_node.node_id(), self.graph.clone()),
+            meta,
+        );
+
+        None
+
+        // node_handle.
+
+        // node_handle.node().evaluate(, lasy_executor, meta);
     }
-
-    fn get() {}
 }

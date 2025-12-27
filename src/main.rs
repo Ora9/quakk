@@ -1,6 +1,6 @@
-
 use quack_sth::{
-    Node, Quack, node::{Multiply, Number}
+    Node, Quack,
+    node::{Multiply, Number},
 };
 
 fn main() {
@@ -24,17 +24,13 @@ fn main() {
 
         let numout = graph.graph_out_id_for("number_out").unwrap();
 
-        let _ = graph.patch(
-            mult.id_for("out").unwrap(),
-            numout
-        );
+        let _ = graph.patch(mult.id_for("out").unwrap(), numout);
     }
-
 
     // dbg!(&mult);
     // dbg!(&number_a);
     // dbg!(&qk.graph);
     // qk.graph.evaluate();
 
-    qk.evaluate_for("number_out");
+    qk.evaluate_for("number_out").unwrap();
 }
