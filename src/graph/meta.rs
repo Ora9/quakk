@@ -25,21 +25,21 @@ pub enum Quality {
 
 /// Meta is the information given to each node to inform the context of its
 /// execution, it "flows backward"
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Meta {
     /// A tick incrementing each frame of execution
-    tick: u64,
+    pub tick: u64,
 
     /// A quality norm used to find a tradeoff between quality and performance
-    quality: Quality,
+    pub quality: Quality,
 }
 
-impl Meta {
-    fn tick(&self) -> u64 {
-        self.tick
-    }
+// impl Meta {
+//     fn tick(&self) -> u64 {
+//         self.tick
+//     }
 
-    fn quality(&self) -> Quality {
-        self.quality
-    }
-}
+//     fn quality(&self) -> Quality {
+//         self.quality
+//     }
+// }
