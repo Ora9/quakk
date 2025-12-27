@@ -1,6 +1,6 @@
 use std::{any::Any, fmt::Debug};
 
-use crate::{HashId, InoutId, Meta, NodeId, NodeInoutId};
+use crate::{HashId, InoutId, LasyExecutor, Meta, NodeId, NodeInoutId};
 
 // pub mod audio;
 pub mod numeric;
@@ -10,8 +10,15 @@ pub use numeric::*;
 // pub use textual::*;
 
 pub trait Node: Debug {
+    fn new() -> Self
+    where
+        Self: Sized;
+
+    /// The node "title" when displayed
     fn title(&self) -> &str;
-    fn evaluate(&self, output_id: Option<InoutId>, input: Box<dyn Any>, meta: Meta);
+
+
+    fn evaluate(&self, out_id: Option<InoutId>, lasy_executor: LasyExecutor, meta: Meta);
 
     fn node_inout_id_for(&self, inout_name: &str, node_id: NodeId) -> Option<NodeInoutId> {
         self.id_for(inout_name).and_then(|inout_id| {
@@ -20,10 +27,6 @@ pub trait Node: Debug {
     }
 
     fn id_for(&self, inout_name: &str) -> Option<InoutId>;
-
-    fn new() -> Self
-    where
-        Self: Sized;
 }
 
 // #[derive(Debug, PartialEq, Eq, Hash)]

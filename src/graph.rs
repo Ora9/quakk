@@ -16,6 +16,8 @@ pub use node::Node;
 mod id;
 pub use id::*;
 
+use crate::{LasyExecutor};
+
 /// `NodeHandle` is a cheaply cloned reference to a node
 ///
 /// This struct is returned when inserting a [`Node`] into a [`Graph`]
@@ -40,6 +42,14 @@ impl NodeHandle {
             node: Arc::new(node),
             // graph,
         }
+    }
+
+    pub fn node_id(&self) -> NodeId {
+        self.id
+    }
+
+    pub fn node(&self) -> Arc<Box<dyn Node>> {
+        self.node.clone()
     }
 
     /// Given a string identifier, will return an [`InoutId`] if the node recognise
@@ -159,12 +169,12 @@ impl Graph {
 
     }
 
-    pub fn graph_in_id_for(&self, inout_name: &str) -> Option<NodeInoutId> {
-        self.graph_in_handle().id_for(inout_name)
+    pub fn graph_in_id_for(&self, in_name: &str) -> Option<NodeInoutId> {
+        self.graph_in_handle().id_for(in_name)
     }
 
-    pub fn graph_out_id_for(&self, inout_name: &str) -> Option<NodeInoutId> {
-        self.graph_out_handle().id_for(inout_name)
+    pub fn graph_out_id_for(&self, out_name: &str) -> Option<NodeInoutId> {
+        self.graph_out_handle().id_for(out_name)
     }
 }
 
@@ -253,10 +263,10 @@ impl Node for GraphIn {
         "GraphIn"
     }
 
-    fn evaluate(&self, output_id: Option<InoutId>, input: Box<dyn Any>, meta: Meta) {
+    fn evaluate(&self, out_id: Option<InoutId>, lasy_executor: LasyExecutor, meta: Meta) {
         dbg!(self.title());
 
-        dbg!(output_id);
+        dbg!(out_id);
         dbg!(meta);
     }
 }
@@ -280,33 +290,22 @@ impl Node for GraphOut {
         "GraphOut"
     }
 
-    fn evaluate(&self, output_id: Option<InoutId>, input: Box<dyn Any>, meta: Meta) {
+    fn evaluate(&self, out_id: Option<InoutId>, lasy_executor: LasyExecutor, meta: Meta) {
         dbg!(self.title());
 
-        dbg!(output_id);
+        dbg!(out_id);
         dbg!(meta);
     }
 }
 
-// /// # Graph ins and outs
-// impl Graph {
-//     pub fn graph_in_handle(&self) -> NodeHandle {
-
-//     }
-
-
-// }
-
 /// # Graph evaluation
 impl Graph {
-    pub fn evaluate(&self) {
-        // for (id, node) in &self.nodes {
-        //         node.evaluate(None, Box::new("oui!".to_string()), Meta {
-        //             quality: Quality::Balanced,
-        //             tick: 5
-        //         });
-        //     }
-        // }
+    pub fn evaluate(&self, out_id: Option<InoutId>, lasy_executor: LasyExecutor, meta: Meta) {
+
+        let out_handle = self.graph_out_handle();
+        dbg!(out_id, out_handle);
+
+        // self.graph_out_handle().node().evaluate(output_id, input, meta);
     }
 }
 
@@ -314,13 +313,4 @@ impl Default for Graph {
     fn default() -> Self {
         Self::new()
     }
-}
-
-struct LasyInputs {
-    node_id: NodeId,
-    graph: Arc<Mutex<Graph>>,
-}
-
-impl LasyInputs {
-    fn get() {}
 }

@@ -1,6 +1,6 @@
 use std::{any::Any, collections::HashMap, str::FromStr};
 
-use crate::{HashId, InoutId, Meta, Node, NodeId};
+use crate::{HashId, InoutId, LasyExecutor, Meta, Node, NodeId};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 enum NumberInout {
@@ -28,10 +28,10 @@ impl Node for Number {
         "Number"
     }
 
-    fn evaluate(&self, output_id: Option<InoutId>, input: Box<dyn Any>, meta: Meta) {
+    fn evaluate(&self, out_id: Option<InoutId>, lasy_executor: LasyExecutor, meta: Meta) {
         dbg!(self.title());
 
-        dbg!(output_id);
+        dbg!(out_id);
         dbg!(meta);
     }
 }
@@ -51,7 +51,7 @@ impl Node for Multiply {
         Self
     }
 
-    fn evaluate(&self, output_id: Option<InoutId>, input: Box<dyn Any>, meta: Meta) {
+    fn evaluate(&self, out_id: Option<InoutId>, lasy_executor: LasyExecutor, meta: Meta) {
         dbg!(self.title());
     }
 
