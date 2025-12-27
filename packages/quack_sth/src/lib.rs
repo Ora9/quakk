@@ -1,10 +1,7 @@
-#![allow(dead_code)]
-#![allow(unused)]
-
-mod graph;
+use anyhow::{Context, anyhow};
 use std::sync::{Arc, Mutex};
 
-use anyhow::{Context, anyhow};
+mod graph;
 pub use graph::*;
 
 mod lasy;

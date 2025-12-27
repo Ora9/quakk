@@ -1,6 +1,6 @@
-use std::{any::Any, fmt::Debug};
+use std::{fmt::Debug};
 
-use crate::{HashId, InoutId, LasyFold, Meta, NodeId, NodeInoutId};
+use crate::{InoutId, LasyFold, Meta, NodeId, NodeInoutId};
 
 pub trait Node: Debug {
     fn new() -> Self

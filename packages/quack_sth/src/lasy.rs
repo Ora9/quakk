@@ -1,7 +1,5 @@
 use std::sync::{Arc, Mutex};
 
-use anyhow::Context;
-
 use crate::{Graph, InoutId, Meta, NodeId};
 
 /// `LasyFold` [folds] the [`Graph`] into a single value.

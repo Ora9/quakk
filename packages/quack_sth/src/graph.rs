@@ -1,10 +1,8 @@
 use anyhow::{Context, Ok, anyhow};
 use std::{
-    any::Any,
     collections::{HashMap, HashSet},
     fmt::Debug,
-    hash::Hash,
-    sync::{Arc, Mutex},
+    sync::Arc,
 };
 
 mod meta;
@@ -230,7 +228,7 @@ impl Graph {
         Ok(())
     }
 
-    pub fn unpatch_inout(&mut self, inout_id: NodeInoutId) -> Result<(), anyhow::Error> {
+    pub fn unpatch_inout(&mut self, _inout_id: NodeInoutId) -> Result<(), anyhow::Error> {
         Ok(())
     }
 
@@ -257,7 +255,7 @@ impl Node for GraphIn {
         "GraphIn"
     }
 
-    fn fold(&self, out_id: InoutId, lasy_fold: LasyFold, meta: Meta) -> f32 {
+    fn fold(&self, out_id: InoutId, _lasy_fold: LasyFold, meta: Meta) -> f32 {
         dbg!(self.title());
 
         dbg!(out_id);
@@ -286,7 +284,7 @@ impl Node for GraphOut {
         "GraphOut"
     }
 
-    fn fold(&self, out_id: InoutId, lasy_fold: LasyFold, meta: Meta) -> f32 {
+    fn fold(&self, out_id: InoutId, _lasy_fold: LasyFold, meta: Meta) -> f32 {
         dbg!(self.title());
 
         dbg!(out_id);
