@@ -150,8 +150,8 @@ impl InoutId {
 impl Debug for InoutId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            InoutId::In(hash_id) => write!(f, "In({hash_id:?}"),
-            InoutId::Out(hash_id) => write!(f, "Out({hash_id:?}"),
+            InoutId::In(hash_id) => write!(f, "In({hash_id:?})"),
+            InoutId::Out(hash_id) => write!(f, "Out({hash_id:?})"),
         }
     }
 }
