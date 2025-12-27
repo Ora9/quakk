@@ -38,7 +38,7 @@ pub struct HashId {
 impl HashId {
     /// Get a new random unique id
     /// ```
-    /// # use quack::HashId;
+    /// # use quack_sth::HashId;
     /// assert_ne!(HashId::new(), HashId::new());
     /// ```
     pub fn new() -> Self {
@@ -49,9 +49,9 @@ impl HashId {
 
     /// Get a new unique id based on a string input
     /// ```
-    /// # use quack::HashId;
-    /// assert_eq!(HashId::new_with("test"), HashId::new_with("test"));
-    /// assert_ne!(HashId::new_with("test"), HashId::new_with("other"));
+    /// # use quack_sth::HashId;
+    /// assert_eq!(HashId::new_from("test"), HashId::new_from("test"));
+    /// assert_ne!(HashId::new_from("test"), HashId::new_from("other"));
     /// ```
     pub fn new_from(input: &str) -> Self {
         let mut hasher = DefaultHasher::new();
