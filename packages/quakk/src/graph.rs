@@ -2,7 +2,7 @@ use anyhow::{Context, Ok, anyhow};
 use std::{
     collections::{HashMap, HashSet},
     fmt::Debug,
-    sync::Arc,
+    sync::{Arc, Mutex},
 };
 
 mod meta;
@@ -288,6 +288,59 @@ impl Node for GraphOut {
         dbg!(meta);
 
         Default::default()
+    }
+}
+
+#[derive(Debug)]
+struct Subgraph {
+    graph: Arc<Mutex<Graph>>,
+}
+
+impl Node for Subgraph {
+    fn new() -> Self
+    where
+        Self: Sized,
+    {
+        Self {
+            graph: Arc::new(Mutex::new(Graph::new())),
+        }
+    }
+
+    fn id_for(&self, inout_name: &str) -> Option<InoutId> {
+        match inout_name {
+            "in" => Some(InoutId::new_in_from(inout_name)),
+            "out" => Some(InoutId::new_out_from(inout_name)),
+            _ => None,
+        }
+    }
+
+    fn fold(&self, container_out_id: InoutId, lasy_fold: LasyFold, meta: Meta) -> f32 {
+        // if self.id_for("out") == Some(container_out_id) {
+
+        //     let inner_out_id = {
+        //         self.graph
+        //             .lock()
+        //             .expect("the inner graph has been poisoned, who was it ?!")
+        //             .graph_out_id_for("out")
+        //             .context("out name not found for this graph")
+        //             bail
+        //     };
+
+        //     let lasy_fold = LasyFold::new(out_id.node_id(), self.graph.clone());
+
+        //     lasy_fold
+        //         .get_input(out_id.inout_id(), self.base_meta)
+        //         .ok_or(anyhow!("prout"))
+
+        //     lasy_fold.get_input(in_id, meta)
+
+        // } else {
+        // }
+        Default::default()
+    }
+
+    fn title(&self) -> &str {
+        "Subgraph"
     }
 }
 
