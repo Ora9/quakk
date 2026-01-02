@@ -86,13 +86,35 @@ impl Default for HashId {
     }
 }
 
-/// A [`Node`](quakk::Node) id
-/// used by the [`Graph`](quakk::Graph)
+/// A [`Node`](quakk::Node) id used to identify a node
+///
+/// It allows representing `GraphIn` and `GraphOut`. Thoses are specials types of [`Node`](quakk::Node)
+/// that handle ins and outs for the [`Graph`](quakk::Graph), theses can only exists once of each
+/// in a graph, so they have this special `NodeId` representation
+///
+/// Other conventional nodes are identified with an [`HashId`], usually random
 #[derive(PartialEq, Eq, Clone, Copy, Hash)]
 pub enum NodeId {
     GraphIn,
     GraphOut,
     Node(HashId),
+}
+
+impl NodeId {
+    /// Return a new random [`NodeId`]
+    pub fn new_node() -> Self {
+        Self::Node(HashId::new())
+    }
+
+    /// Return a new [`NodeId`] based on an input `&str`
+    pub fn new_node_from(input: &str) -> Self {
+        Self::Node(HashId::new_from(input))
+    }
+
+    /// Return a [`NodeInoutId`] based on self and the given [`InoutId`]
+    pub fn into_node_inout_id(self, inout_id: InoutId) -> NodeInoutId {
+        NodeInoutId::new(self, inout_id)
+    }
 }
 
 impl Debug for NodeId {
@@ -105,22 +127,22 @@ impl Debug for NodeId {
     }
 }
 
-impl NodeId {
-    pub fn new_node() -> Self {
-        Self::Node(HashId::new())
-    }
-
-    pub fn new_node_from(input: &str) -> Self {
-        Self::Node(HashId::new_from(input))
-    }
-
-    pub fn into_node_inout_id(self, inout_id: InoutId) -> NodeInoutId {
-        NodeInoutId::new(self, inout_id)
-    }
-}
-
-/// Each input or output (`inout`) in the graph have a specific id, that is
-/// either inout of a node, or of the graph itself
+/// In the [`Graph`](quakk::Graph), each of the [`Node`s](quakk::Node) ins or outs have an id.
+///
+/// This id is designed to be unique for a specific node, but not to be unique in the graph, This id
+/// only care about the inout without specifing the node it is tied to, that would be the purpose
+/// of [`NodeInoutId`], that identify a specific inout in the graph.
+///
+/// The term `inout` is widely used in the code and documentation to refer to a node's input or output.
+///
+/// This id allow the distinction between :
+/// - `in` or "input", where data flowes inward into the node as parameter. An input can only have
+///   one edge (connection, source)
+/// - `out` or "output", where data flowes outward from the node, as the result of a computation.
+///   An output can have multiples edges connected to it, passing data to other node's inputs
+///
+/// Internally this id is constructed with an [`HashId`], itself constructed as a digest of a
+/// `&str` name for an inout
 #[derive(PartialEq, Eq, Clone, Copy, Hash)]
 pub enum InoutId {
     In(HashId),
@@ -128,14 +150,17 @@ pub enum InoutId {
 }
 
 impl InoutId {
+    /// Create a new `InoutId::In` based on the given inout name
     pub fn new_in_from(inout_name: &str) -> Self {
         Self::In(HashId::new_from(inout_name))
     }
 
+    /// Create a new `InoutId::Out` based on the given inout name
     pub fn new_out_from(inout_name: &str) -> Self {
         Self::Out(HashId::new_from(inout_name))
     }
 
+    /// Return a [`NodeInoutId`] based on self and the given [`NodeId`]
     pub fn into_node_inout_id(self, node_id: NodeId) -> NodeInoutId {
         NodeInoutId::new(node_id, self)
     }
@@ -150,6 +175,7 @@ impl Debug for InoutId {
     }
 }
 
+/// Ties an [`InoutId`] to a [`NodeId`]
 #[derive(PartialEq, Eq, Clone, Copy, Hash)]
 pub struct NodeInoutId {
     node_id: NodeId,
