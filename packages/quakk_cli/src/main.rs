@@ -30,11 +30,11 @@ fn main() {
             add.in_id_for("term2").unwrap(),
         );
 
-        let num_out = graph.graph_out_in_id_for("number_out").unwrap();
+        let num_out = graph.graph_out_in_id_for("numeric").unwrap();
         let _ = graph.patch(add.out_id_for("out").unwrap(), num_out);
 
         dbg!(graph);
     }
 
-    dbg!(qk.evaluate_for("number_out").unwrap());
+    dbg!(qk.fold_for("number_out").unwrap());
 }

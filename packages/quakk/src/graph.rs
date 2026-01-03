@@ -259,7 +259,7 @@ impl Node for GraphIn {
 
     fn id_for(&self, inout_name: &str) -> Option<InoutId> {
         match inout_name {
-            "number_in" => Some(InoutId::new_out_from("number_in")),
+            "numeric" => Some(InoutId::new_out_from("number_in")),
             _ => None,
         }
     }
@@ -288,7 +288,7 @@ impl Node for GraphOut {
 
     fn id_for(&self, inout_name: &str) -> Option<InoutId> {
         match inout_name {
-            "number_out" => Some(InoutId::new_in_from(inout_name)),
+            "numeric" => Some(InoutId::new_in_from(inout_name)),
             _ => None,
         }
     }
@@ -298,8 +298,7 @@ impl Node for GraphOut {
     }
 
     fn fold(&self, out_id: OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
-        dbg!(self.title());
-        dbg!(out_id, lasy_fold);
+        lasy_fold.get_in(InId::new("numeric"), meta);
 
         Ok(Default::default())
     }
