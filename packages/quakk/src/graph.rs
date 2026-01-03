@@ -49,6 +49,18 @@ impl NodeHandle {
     pub fn id_for(&self, inout_name: &str) -> Option<NodeInoutId> {
         self.node.node_inout_id_for(inout_name, self.id)
     }
+
+    pub fn in_id_for(&self, in_name: &str) -> Option<NodeInId> {
+        self.node
+            .in_id_for(in_name)
+            .map(|in_id| NodeInId::new(self.node_id(), in_id))
+    }
+
+    pub fn out_id_for(&self, out_name: &str) -> Option<NodeOutId> {
+        self.node
+            .out_id_for(out_name)
+            .map(|out_id| NodeOutId::new(self.node_id(), out_id))
+    }
 }
 
 /// `Vertex` is an item in the graph, it holds a [`NodeHandle`], but also all
@@ -57,8 +69,8 @@ impl NodeHandle {
 pub(crate) struct Vertex {
     node_handle: NodeHandle,
 
-    inbound: HashMap<InoutId, NodeInoutId>,
-    outbound: HashMap<InoutId, HashSet<NodeInoutId>>,
+    inbound: HashMap<InId, NodeOutId>,
+    outbound: HashMap<OutId, HashSet<NodeInId>>,
 }
 
 impl Vertex {
@@ -71,11 +83,11 @@ impl Vertex {
         }
     }
 
-    pub fn inbound_for(&self, in_id: InoutId) -> Option<&NodeInoutId> {
+    pub fn inbound_for(&self, in_id: InId) -> Option<&NodeOutId> {
         self.inbound.get(&in_id)
     }
 
-    pub fn outbound_for(&self, out_id: InoutId) -> Option<&HashSet<NodeInoutId>> {
+    pub fn outbound_for(&self, out_id: OutId) -> Option<&HashSet<NodeInId>> {
         self.outbound.get(&out_id)
     }
 }
@@ -156,12 +168,12 @@ impl Graph {
             .expect("A graph must always have a `GraphOut` node")
     }
 
-    pub fn graph_in_id_for(&self, in_name: &str) -> Option<NodeInoutId> {
-        self.graph_in_handle().id_for(in_name)
+    pub fn graph_out_in_id_for(&self, in_name: &str) -> Option<NodeInId> {
+        self.graph_out_handle().in_id_for(in_name)
     }
 
-    pub fn graph_out_id_for(&self, out_name: &str) -> Option<NodeInoutId> {
-        self.graph_out_handle().id_for(out_name)
+    pub fn graph_in_out_id_for(&self, out_name: &str) -> Option<NodeOutId> {
+        self.graph_in_handle().out_id_for(out_name)
     }
 }
 
@@ -185,42 +197,46 @@ impl Graph {
 
 /// # Graph patching
 impl Graph {
-    pub fn patch(&mut self, out_id: NodeInoutId, in_id: NodeInoutId) -> Result<(), anyhow::Error> {
+    pub fn patch(
+        &mut self,
+        node_out_id: NodeOutId,
+        node_in_id: NodeInId,
+    ) -> Result<(), anyhow::Error> {
         self.vertices
-            .get_mut(&out_id.node_id())
+            .get_mut(&node_out_id.node_id())
             .context("The given `out` node does not exists")?
             .outbound
-            .entry(out_id.inout_id())
+            .entry(node_out_id.out_id())
             .or_default()
-            .insert(in_id);
+            .insert(node_in_id);
 
         self.vertices
-            .get_mut(&in_id.node_id())
+            .get_mut(&node_in_id.node_id())
             .context("The given `in` node does not exists")?
             .inbound
-            .insert(in_id.inout_id(), out_id);
+            .insert(node_in_id.in_id(), node_out_id);
 
         Ok(())
     }
 
     pub fn unpatch(
         &mut self,
-        out_id: NodeInoutId,
-        in_id: NodeInoutId,
+        node_out_id: NodeOutId,
+        node_in_id: NodeInId,
     ) -> Result<(), anyhow::Error> {
         self.vertices
-            .get_mut(&out_id.node_id())
+            .get_mut(&node_out_id.node_id())
             .context("The given `out` node does not exists")?
             .outbound
-            .entry(out_id.inout_id())
+            .entry(node_out_id.out_id())
             .or_default()
-            .remove(&in_id);
+            .remove(&node_in_id);
 
         self.vertices
-            .get_mut(&in_id.node_id())
+            .get_mut(&node_in_id.node_id())
             .context("The given `in` node does not exists")?
             .inbound
-            .remove(&in_id.inout_id());
+            .remove(&node_in_id.in_id());
 
         Ok(())
     }
@@ -243,7 +259,7 @@ impl Node for GraphIn {
 
     fn id_for(&self, inout_name: &str) -> Option<InoutId> {
         match inout_name {
-            "number_in" => Some(InoutId::new_in_from("number_in")),
+            "number_in" => Some(InoutId::new_out_from("number_in")),
             _ => None,
         }
     }
@@ -252,13 +268,13 @@ impl Node for GraphIn {
         "GraphIn"
     }
 
-    fn fold(&self, out_id: InoutId, _lasy_fold: LasyFold, meta: Meta) -> f32 {
+    fn fold(&self, out_id: OutId, _lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
         dbg!(self.title());
 
         dbg!(out_id);
         dbg!(meta);
 
-        Default::default()
+        Ok(Default::default())
     }
 }
 
@@ -272,7 +288,7 @@ impl Node for GraphOut {
 
     fn id_for(&self, inout_name: &str) -> Option<InoutId> {
         match inout_name {
-            "number_out" => Some(InoutId::new_in_from("number_out")),
+            "number_out" => Some(InoutId::new_in_from(inout_name)),
             _ => None,
         }
     }
@@ -281,13 +297,11 @@ impl Node for GraphOut {
         "GraphOut"
     }
 
-    fn fold(&self, out_id: InoutId, _lasy_fold: LasyFold, meta: Meta) -> f32 {
+    fn fold(&self, out_id: OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
         dbg!(self.title());
+        dbg!(out_id, lasy_fold);
 
-        dbg!(out_id);
-        dbg!(meta);
-
-        Default::default()
+        Ok(Default::default())
     }
 }
 
@@ -314,7 +328,12 @@ impl Node for Subgraph {
         }
     }
 
-    fn fold(&self, container_out_id: InoutId, lasy_fold: LasyFold, meta: Meta) -> f32 {
+    fn fold(
+        &self,
+        container_out_id: OutId,
+        lasy_fold: LasyFold,
+        meta: Meta,
+    ) -> anyhow::Result<f32> {
         // if self.id_for("out") == Some(container_out_id) {
 
         //     let inner_out_id = {
@@ -336,7 +355,7 @@ impl Node for Subgraph {
 
         // } else {
         // }
-        Default::default()
+        Ok(Default::default())
     }
 
     fn title(&self) -> &str {

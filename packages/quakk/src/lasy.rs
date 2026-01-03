@@ -1,6 +1,8 @@
 use std::sync::{Arc, Mutex};
 
-use crate::{Graph, InoutId, Meta, NodeId};
+use anyhow::Context;
+
+use crate::{Graph, InId, InoutId, Meta, NodeId};
 
 /// `LasyFold` [folds] the [`Graph`] into a single value.
 ///
@@ -38,27 +40,36 @@ impl LasyFold {
         Self { node_id, graph }
     }
 
-    pub fn get_input(&self, in_id: InoutId, meta: Meta) -> Option<f32> {
-        let (inbound_node, inbound_out_id) = {
-            let graph = self.graph.lock().unwrap();
-            let inbound_out_id = graph
+    pub fn get_in(&self, in_id: InId, meta: Meta) -> Result<f32, anyhow::Error> {
+        let (in_node_handle, in_node_out_id) = {
+            let graph = self
+                .graph
+                .lock()
+                .expect("the graph has been poisoned, who was it!?");
+
+            let in_node_out_id = graph
                 .vertex_for_id(self.node_id)
-                .expect("Cannot find the given node")
-                .inbound_for(in_id)?
+                .context("Should be able to find the node associated with this LasyInput")?
+                .inbound_for(in_id)
+                .context(format!(
+                    "The node does not have any inbound edge for InId `{:?}`",
+                    in_id
+                ))?
                 .to_owned();
 
-            (
-                graph.handle_for_id(inbound_out_id.node_id())?,
-                inbound_out_id,
-            )
+            let in_node_handle = graph
+                .handle_for_id(in_node_out_id.node_id())
+                .context("Could not find the the `OutId` associated with this edge")?;
+
+            (in_node_handle, in_node_out_id)
         };
 
-        dbg!(inbound_node.node().title());
+        dbg!(in_node_handle.node().title());
 
-        Some(inbound_node.node().fold(
-            inbound_out_id.inout_id(),
-            LasyFold::new(inbound_node.node_id(), self.graph.clone()),
+        in_node_handle.node().fold(
+            in_node_out_id.out_id(),
+            LasyFold::new(in_node_handle.node_id(), self.graph.clone()),
             meta,
-        ))
+        )
     }
 }

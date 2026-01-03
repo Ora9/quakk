@@ -1,6 +1,6 @@
 use std::ops::{Add as opsAdd, Mul as opsMul};
 
-use crate::{InoutId, LasyFold, Meta, Node};
+use crate::{InoutId, LasyFold, Meta, Node, OutId};
 
 // #[derive(Debug, PartialEq, Eq, Hash)]
 // enum NumberInout {
@@ -17,6 +17,10 @@ impl Node for Number {
         Self { value: 4.0 }
     }
 
+    fn title(&self) -> &str {
+        "Number"
+    }
+
     fn id_for(&self, inout_name: &str) -> Option<InoutId> {
         match inout_name {
             "out" => Some(InoutId::new_out_from("out")),
@@ -24,12 +28,8 @@ impl Node for Number {
         }
     }
 
-    fn title(&self) -> &str {
-        "Number"
-    }
-
-    fn fold(&self, _out_id: InoutId, _lasy_fold: LasyFold, _meta: Meta) -> f32 {
-        self.value
+    fn fold(&self, _out_id: OutId, _lasy_fold: LasyFold, _meta: Meta) -> anyhow::Result<f32> {
+        Ok(self.value)
     }
 }
 
@@ -48,24 +48,21 @@ impl Node for Multiply {
         Self
     }
 
-    fn fold(&self, _out_id: InoutId, lasy_fold: LasyFold, meta: Meta) -> f32 {
-        if let Some(term1) = lasy_fold.get_input(self.id_for("term1").unwrap(), meta)
-            && let Some(term2) = lasy_fold.get_input(self.id_for("term2").unwrap(), meta)
-        {
-            term1.mul(term2)
-        } else {
-            0.0
-        }
-    }
-
     fn title(&self) -> &str {
         "Multiply"
+    }
+
+    fn fold(&self, _out_id: OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
+        let term1 = lasy_fold.get_in(self.id_for("term1").unwrap().try_into()?, meta)?;
+        let term2 = lasy_fold.get_in(self.id_for("term2").unwrap().try_into()?, meta)?;
+
+        Ok(term1.mul(term2))
     }
 
     fn id_for(&self, inout_name: &str) -> Option<InoutId> {
         match inout_name {
             "term1" | "term2" => Some(InoutId::new_in_from(inout_name)),
-            "out" => Some(InoutId::new_in_from(inout_name)),
+            "out" => Some(InoutId::new_out_from(inout_name)),
             _ => None,
         }
     }
@@ -79,24 +76,21 @@ impl Node for Add {
         Self
     }
 
-    fn fold(&self, _out_id: InoutId, lasy_fold: LasyFold, meta: Meta) -> f32 {
-        if let Some(term1) = lasy_fold.get_input(self.id_for("term1").unwrap(), meta)
-            && let Some(term2) = lasy_fold.get_input(self.id_for("term2").unwrap(), meta)
-        {
-            term1.add(term2)
-        } else {
-            0.0
-        }
-    }
-
     fn title(&self) -> &str {
         "Add"
+    }
+
+    fn fold(&self, _out_id: OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
+        let term1 = lasy_fold.get_in(self.id_for("term1").unwrap().try_into()?, meta)?;
+        let term2 = lasy_fold.get_in(self.id_for("term2").unwrap().try_into()?, meta)?;
+
+        Ok(term1.add(term2))
     }
 
     fn id_for(&self, inout_name: &str) -> Option<InoutId> {
         match inout_name {
             "term1" | "term2" => Some(InoutId::new_in_from(inout_name)),
-            "out" => Some(InoutId::new_in_from(inout_name)),
+            "out" => Some(InoutId::new_out_from(inout_name)),
             _ => None,
         }
     }

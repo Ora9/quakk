@@ -14,22 +14,26 @@ fn main() {
         let add = graph.insert(Box::new(Add::new()));
 
         let _ = graph.patch(
-            number_a.id_for("out").unwrap(),
-            mult.id_for("term1").unwrap(),
+            number_a.out_id_for("out").unwrap(),
+            mult.in_id_for("term1").unwrap(),
         );
         let _ = graph.patch(
-            number_b.id_for("out").unwrap(),
-            mult.id_for("term2").unwrap(),
+            number_b.out_id_for("out").unwrap(),
+            mult.in_id_for("term2").unwrap(),
         );
-        let _ = graph.patch(mult.id_for("out").unwrap(), add.id_for("term1").unwrap());
         let _ = graph.patch(
-            number_c.id_for("out").unwrap(),
-            add.id_for("term2").unwrap(),
+            mult.out_id_for("out").unwrap(),
+            add.in_id_for("term1").unwrap(),
+        );
+        let _ = graph.patch(
+            number_c.out_id_for("out").unwrap(),
+            add.in_id_for("term2").unwrap(),
         );
 
-        let num_out = graph.graph_out_id_for("number_out").unwrap();
+        let num_out = graph.graph_out_in_id_for("number_out").unwrap();
+        let _ = graph.patch(add.out_id_for("out").unwrap(), num_out);
 
-        let _ = graph.patch(add.id_for("out").unwrap(), num_out);
+        dbg!(graph);
     }
 
     dbg!(qk.evaluate_for("number_out").unwrap());

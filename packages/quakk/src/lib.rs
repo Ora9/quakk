@@ -32,18 +32,22 @@ impl Quakk {
     }
 
     pub fn evaluate_for(&self, out_name: &str) -> Result<f32, anyhow::Error> {
-        let out_id = {
-            self.graph
-                .lock()
-                .expect("the graph has been poisoned, who was it ?!")
-                .graph_out_id_for(out_name)
-                .context("out name not found for this graph")?
-        };
+        LasyFold::new(NodeId::GraphOut, self.graph.clone())
+            .get_in(InId::new(out_name), self.base_meta)
+            .context("Could not evaluate the graph")
 
-        let lasy_fold = LasyFold::new(out_id.node_id(), self.graph.clone());
+        // let out_id = {
+        //     self.graph
+        //         .lock()
+        //         .expect("the graph has been poisoned, who was it ?!")
+        //         .graph_out_id_for(out_name)
+        //         .context("out name not found for this graph")?
+        // };
 
-        lasy_fold
-            .get_input(out_id.inout_id(), self.base_meta)
-            .ok_or(anyhow!("prout"))
+        // let lasy_fold = LasyFold::new(out_id.node_id(), self.graph.clone());
+
+        // lasy_fold
+        //     .get_input(out_id.inout_id(), self.base_meta)
+        //     .ok_or(anyhow!("prout"))
     }
 }
