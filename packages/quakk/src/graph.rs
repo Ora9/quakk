@@ -295,9 +295,7 @@ impl Node for GraphOut {
     }
 
     fn fold(&self, out_id: OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
-        lasy_fold.get_in(InId::new("numeric"), meta);
-
-        Ok(Default::default())
+        lasy_fold.get_in(InId::new("numeric"), meta)
     }
 }
 
