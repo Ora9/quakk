@@ -5,11 +5,8 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-mod meta;
-pub use meta::*;
-
 use crate::{
-    LasyFold, Node,
+    LasyFold, Meta, Node,
     id::{InId, InoutId, NodeId, NodeInId, NodeInoutId, NodeOutId, OutId},
 };
 

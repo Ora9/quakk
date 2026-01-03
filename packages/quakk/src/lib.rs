@@ -8,6 +8,9 @@ mod node;
 pub use node::Node;
 pub use node::numeric;
 
+mod meta;
+pub use meta::*;
+
 pub mod id;
 
 use anyhow::{Context, anyhow};
