@@ -43,7 +43,7 @@ impl LasyFold {
         Self { node_id, graph }
     }
 
-    pub fn get_in(&self, in_id: InId, meta: Meta) -> Result<f32, anyhow::Error> {
+    pub fn get_in(&self, in_id: &dyn InId, meta: Meta) -> Result<f32, anyhow::Error> {
         let (in_node_handle, in_node_out_id) = {
             let graph = self
                 .graph
@@ -70,7 +70,7 @@ impl LasyFold {
         dbg!(in_node_handle.node().title());
 
         in_node_handle.node().fold(
-            in_node_out_id.out_id(),
+            &*in_node_out_id.out_id(),
             LasyFold::new(in_node_handle.node_id(), self.graph.clone()),
             meta,
         )

@@ -38,7 +38,7 @@ impl Quakk {
         }
     }
 
-    pub fn fold_for(&self, out_name: &str) -> Result<f32, anyhow::Error> {
+    pub fn fold_for(&self, out_id: &dyn OutId) -> Result<f32, anyhow::Error> {
         let graph_out_handle = {
             self.graph
                 .lock()
@@ -49,7 +49,7 @@ impl Quakk {
         graph_out_handle
             .node()
             .fold(
-                OutId::new(out_name),
+                out_id,
                 LasyFold::new(NodeId::GraphOut, self.graph.clone()),
                 self.base_meta,
             )

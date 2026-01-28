@@ -1,5 +1,6 @@
 use anyhow::{Context, Ok, anyhow};
 use std::{
+    any::{self, Any},
     collections::{HashMap, HashSet},
     fmt::Debug,
     sync::{Arc, Mutex},
@@ -8,6 +9,7 @@ use std::{
 use crate::{
     LasyFold, Meta, Node,
     id::{InId, InoutId, NodeId, NodeInId, NodeInoutId, NodeOutId, OutId},
+    numeric::{MultiplyInId, NumberOutId},
 };
 
 /// `NodeHandle` is a cheaply cloned reference to a node
@@ -38,26 +40,61 @@ impl NodeHandle {
         self.node.clone()
     }
 
-    /// Given a string identifier, will return an [`InoutId`] if the node recognise
-    /// it as a valid in/out name
-    ///
-    /// The format and convention around said identifier is not formalised yet,
-    /// but will be eventually
-    pub fn id_for(&self, inout_name: &str) -> Option<NodeInoutId> {
-        self.node.node_inout_id_for(inout_name, self.id)
+    // /// Given a string identifier, will return an [`InoutId`] if the node recognise
+    // /// it as a valid in/out name
+    // ///
+    // /// The format and convention around said identifier is not formalised yet,
+    // /// but will be eventually
+    // pub fn id_for(&self, inout_name: &str) -> Option<NodeInoutId> {
+    //     self.node.node_inout_id_for(inout_name, self.id)
+    // }
+
+    pub fn node_in_id(&self, in_id: &dyn InId) -> Option<NodeInId> {
+        self.node.node_in_id(in_id, self.node_id())
     }
 
-    pub fn in_id_for(&self, in_name: &str) -> Option<NodeInId> {
-        self.node
-            .in_id_for(in_name)
-            .map(|in_id| NodeInId::new(self.node_id(), in_id))
+    pub fn node_out_id(&self, out_id: &dyn OutId) -> Option<NodeOutId> {
+        // if let Some(out_id) = out_id.as_any().downcast_ref::<NumberOutId>() {
+        //     match out_id {
+        //         NumberOutId::Out => {
+        //             dbg!("out!");
+        //         }
+        //         NumberOutId::Prout(prout) => {
+        //             dbg!(prout);
+        //         }
+        //     }
+        // }
+
+        self.node.node_out_id(out_id, self.node_id())
+        // let a = out_id as &dyn Any;
+        // dbg!(any::type_name_of_val(&a));
+        // dbg!(a.downcast_ref::<NumberOutId>());
+
+        // dbg!(any::type_name_of_val(out_id));
+        // let a = dyn_clone::clone_box(out_id);
+        // let b = a as Box<dyn Any>;
+        // dbg!(b.downcast_ref::<MultiplyInId>());
+
+        // dbg!(any::type_name_of_val(out_id));
+        // dbg!(dyn_clone::clone_box(out_id));
+
+        // dbg!(out_id.type_id());
+
+        // dbg!(out_id.downcast_ref::<NumberOutId>());
+        // None
     }
 
-    pub fn out_id_for(&self, out_name: &str) -> Option<NodeOutId> {
-        self.node
-            .out_id_for(out_name)
-            .map(|out_id| NodeOutId::new(self.node_id(), out_id))
-    }
+    // pub fn in_id_for(&self, in_name: &str) -> Option<NodeInId> {
+    //     self.node
+    //         .in_id_for(in_name)
+    //         .map(|in_id| NodeInId::new(self.node_id(), in_id))
+    // }
+
+    // pub fn out_id_for(&self, out_name: &str) -> Option<NodeOutId> {
+    //     self.node
+    //         .out_id_for(out_name)
+    //         .map(|out_id| NodeOutId::new(self.node_id(), out_id))
+    // }
 }
 
 /// `Vertex` is an item in the graph, it holds a [`NodeHandle`], but also all
@@ -66,8 +103,8 @@ impl NodeHandle {
 pub(crate) struct Vertex {
     node_handle: NodeHandle,
 
-    inbound: HashMap<InId, NodeOutId>,
-    outbound: HashMap<OutId, HashSet<NodeInId>>,
+    inbound: HashMap<Box<dyn InId>, NodeOutId>,
+    outbound: HashMap<Box<dyn OutId>, HashSet<NodeInId>>,
 }
 
 impl Vertex {
@@ -80,12 +117,12 @@ impl Vertex {
         }
     }
 
-    pub fn inbound_for(&self, in_id: InId) -> Option<&NodeOutId> {
-        self.inbound.get(&in_id)
+    pub fn inbound_for(&self, in_id: &dyn InId) -> Option<&NodeOutId> {
+        self.inbound.get(&dyn_clone::clone_box(in_id))
     }
 
-    pub fn outbound_for(&self, out_id: OutId) -> Option<&HashSet<NodeInId>> {
-        self.outbound.get(&out_id)
+    pub fn outbound_for(&self, out_id: &dyn OutId) -> Option<&HashSet<NodeInId>> {
+        self.outbound.get(&dyn_clone::clone_box(out_id))
     }
 }
 
@@ -165,13 +202,13 @@ impl Graph {
             .expect("A graph must always have a `GraphOut` node")
     }
 
-    pub fn graph_out_in_id_for(&self, in_name: &str) -> Option<NodeInId> {
-        self.graph_out_handle().in_id_for(in_name)
-    }
+    // pub fn graph_out_in_id_for(&self, in_name: &str) -> Option<NodeInId> {
+    //     self.graph_out_handle().in_id_for(in_name)
+    // }
 
-    pub fn graph_in_out_id_for(&self, out_name: &str) -> Option<NodeOutId> {
-        self.graph_in_handle().out_id_for(out_name)
-    }
+    // pub fn graph_in_out_id_for(&self, out_name: &str) -> Option<NodeOutId> {
+    //     self.graph_in_handle().out_id_for(out_name)
+    // }
 }
 
 // #[cfg(test)]
@@ -203,9 +240,9 @@ impl Graph {
             .get_mut(&node_out_id.node_id())
             .context("The given `out` node does not exists")?
             .outbound
-            .entry(node_out_id.out_id())
+            .entry(node_out_id.clone().out_id())
             .or_default()
-            .insert(node_in_id);
+            .insert(node_in_id.clone());
 
         self.vertices
             .get_mut(&node_in_id.node_id())
@@ -249,23 +286,30 @@ impl Graph {
 #[derive(Debug)]
 pub struct GraphIn;
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum GraphInInId {
+    Numeric,
+}
+
+impl InId for GraphInInId {}
+
 impl Node for GraphIn {
     fn new() -> Self {
         Self
     }
 
-    fn id_for(&self, inout_name: &str) -> Option<InoutId> {
-        match inout_name {
-            "numeric" => Some(InoutId::new_out_from("number_in")),
-            _ => None,
-        }
-    }
+    // fn id_for(&self, inout_name: &str) -> Option<InoutId> {
+    //     match inout_name {
+    //         "numeric" => Some(InoutId::new_out_from("number_in")),
+    //         _ => None,
+    //     }
+    // }
 
     fn title(&self) -> &str {
         "GraphIn"
     }
 
-    fn fold(&self, out_id: OutId, _lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
+    fn fold(&self, out_id: &dyn OutId, _lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
         dbg!(self.title());
 
         dbg!(out_id);
@@ -273,35 +317,69 @@ impl Node for GraphIn {
 
         Ok(Default::default())
     }
+
+    fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
+        None
+    }
+
+    fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
+        None
+    }
 }
 
 #[derive(Debug)]
 pub struct GraphOut;
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum GraphOutOutId {
+    Numeric,
+}
 
 impl Node for GraphOut {
     fn new() -> Self {
         Self
     }
 
-    fn id_for(&self, inout_name: &str) -> Option<InoutId> {
-        match inout_name {
-            "numeric" => Some(InoutId::new_in_from(inout_name)),
-            _ => None,
-        }
-    }
+    // fn id_for(&self, inout_name: &str) -> Option<InoutId> {
+    //     match inout_name {
+    //         "numeric" => Some(InoutId::new_in_from(inout_name)),
+    //         _ => None,
+    //     }
+    // }
 
     fn title(&self) -> &str {
         "GraphOut"
     }
 
-    fn fold(&self, out_id: OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
-        lasy_fold.get_in(InId::new("numeric"), meta)
+    fn fold(&self, out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
+        dbg!(out_id);
+
+        Ok(Default::default())
+        // lasy_fold.get_in(out_i, meta)
+    }
+
+    fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
+        None
+    }
+
+    fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
+        None
     }
 }
 
 #[derive(Debug)]
 struct Subgraph {
     graph: Arc<Mutex<Graph>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+struct SubgraphInId {
+    name: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+struct SubgraphOutId {
+    name: String,
 }
 
 impl Node for Subgraph {
@@ -314,17 +392,17 @@ impl Node for Subgraph {
         }
     }
 
-    fn id_for(&self, inout_name: &str) -> Option<InoutId> {
-        match inout_name {
-            "in" => Some(InoutId::new_in_from(inout_name)),
-            "out" => Some(InoutId::new_out_from(inout_name)),
-            _ => None,
-        }
-    }
+    // fn id_for(&self, inout_name: &str) -> Option<InoutId> {
+    //     match inout_name {
+    //         "in" => Some(InoutId::new_in_from(inout_name)),
+    //         "out" => Some(InoutId::new_out_from(inout_name)),
+    //         _ => None,
+    //     }
+    // }
 
     fn fold(
         &self,
-        container_out_id: OutId,
+        container_out_id: &dyn OutId,
         lasy_fold: LasyFold,
         meta: Meta,
     ) -> anyhow::Result<f32> {
@@ -354,6 +432,14 @@ impl Node for Subgraph {
 
     fn title(&self) -> &str {
         "Subgraph"
+    }
+
+    fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
+        None
+    }
+
+    fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
+        None
     }
 }
 
