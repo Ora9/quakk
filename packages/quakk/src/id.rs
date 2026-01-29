@@ -140,26 +140,12 @@ impl Debug for NodeId {
     }
 }
 
-pub trait InId: Any + Debug + DynClone + DynEq + DynHash {
-    // fn as_any(&self) -> &dyn Any
-    // where
-    //     Self: Sized,
-    // {
-    //     self
-    // }
-}
+pub trait InId: Any + Debug + DynClone + DynEq + DynHash {}
 dyn_clone::clone_trait_object!(InId);
 dyn_eq::eq_trait_object!(InId);
 dyn_hash::hash_trait_object!(InId);
 
-pub trait OutId: Any + Debug + DynClone + DynEq + DynHash {
-    // fn as_any(&self) -> &dyn Any
-    // where
-    //     Self: Sized,
-    // {
-    //     self
-    // }
-}
+pub trait OutId: Any + Debug + DynClone + DynEq + DynHash {}
 dyn_clone::clone_trait_object!(OutId);
 dyn_eq::eq_trait_object!(OutId);
 dyn_hash::hash_trait_object!(OutId);

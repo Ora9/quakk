@@ -3,6 +3,7 @@ use std::{
     any::{self, Any},
     collections::{HashMap, HashSet},
     fmt::Debug,
+    ops::Sub,
     sync::{Arc, Mutex},
 };
 
@@ -48,68 +49,12 @@ impl NodeHandle {
     // pub fn id_for(&self, inout_name: &str) -> Option<NodeInoutId> {
     //     self.node.node_inout_id_for(inout_name, self.id)
     // }
-
     pub fn node_in_id(&self, in_id: &dyn InId) -> Option<NodeInId> {
-        // let a: &dyn InId = &MultiplyInId::Term1;
-
-        dbg!(in_id);
-
         self.node().node_in_id(in_id, self.node_id())
-
-        //
-        // match in_id {
-        //     MixInId::InGain(n) => {}
-        //     MultiplyInId::Term1 => {
-        //         dbg!("oui");
-        //     }
-        //     _ => {
-        //         dbg!("non");
-        //     }
-        // }
-
-        // dbg!(in_id == (MultiplyInId::Term1: &dyn InId));
-
-        // let in_id = dyn_clone::clone_box(in_id);
-
-        // self.node.
-
-        // dbg!(in_id);
     }
 
     pub fn node_out_id(&self, out_id: &dyn OutId) -> Option<NodeOutId> {
         self.node().node_out_id(out_id, self.node_id())
-
-        // let a: &dyn InId = &MultiplyInId::Term1;
-
-        // dbg!(out_id.as_any().downcast_ref::<NumberOutId>());
-
-        // if let Some(out_id) = out_id.as_any().downcast_ref::<NumberOutId>() {
-        //     match out_id {
-        //         NumberOutId::Out => {
-        //             dbg!("out!");
-        //         }
-        //         NumberOutId::Prout(prout) => {
-        //             dbg!(prout);
-        //         }
-        //     }
-        // }
-
-        // let a = out_id as &dyn Any;
-        // dbg!(any::type_name_of_val(&a));
-        // dbg!(a.downcast_ref::<NumberOutId>());
-
-        // dbg!(any::type_name_of_val(out_id));
-        // let a = dyn_clone::clone_box(out_id);
-        // let b = a as Box<dyn Any>;
-        // dbg!(b.downcast_ref::<MultiplyInId>());
-
-        // dbg!(any::type_name_of_val(out_id));
-        // dbg!(dyn_clone::clone_box(out_id));
-
-        // dbg!(out_id.type_id());
-
-        // dbg!(out_id.downcast_ref::<NumberOutId>());
-        // None
     }
 
     // pub fn in_id_for(&self, in_name: &str) -> Option<NodeInId> {
@@ -347,7 +292,11 @@ impl Node for GraphIn {
     }
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-        None
+        if let Some(in_id) = in_id.as_any().downcast_ref::<GraphInInId>() {
+            Some(NodeInId::new(node_id, in_id))
+        } else {
+            None
+        }
     }
 
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
@@ -362,6 +311,8 @@ pub struct GraphOut;
 pub enum GraphOutOutId {
     Numeric,
 }
+
+impl OutId for GraphOutOutId {}
 
 impl Node for GraphOut {
     fn new() -> Self {
@@ -391,7 +342,11 @@ impl Node for GraphOut {
     }
 
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        None
+        if let Some(out_id) = out_id.as_any().downcast_ref::<GraphOutOutId>() {
+            Some(NodeOutId::new(node_id, out_id))
+        } else {
+            None
+        }
     }
 }
 
@@ -405,10 +360,14 @@ struct SubgraphInId {
     name: String,
 }
 
+impl InId for SubgraphInId {}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct SubgraphOutId {
     name: String,
 }
+
+impl OutId for SubgraphOutId {}
 
 impl Node for Subgraph {
     fn new() -> Self
@@ -463,11 +422,19 @@ impl Node for Subgraph {
     }
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-        None
+        if let Some(in_id) = in_id.as_any().downcast_ref::<SubgraphInId>() {
+            Some(NodeInId::new(node_id, in_id))
+        } else {
+            None
+        }
     }
 
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        None
+        if let Some(out_id) = out_id.as_any().downcast_ref::<SubgraphOutId>() {
+            Some(NodeOutId::new(node_id, out_id))
+        } else {
+            None
+        }
     }
 }
 

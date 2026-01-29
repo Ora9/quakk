@@ -38,11 +38,7 @@ impl Node for Number {
 
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
         if let Some(out_id) = out_id.as_any().downcast_ref::<NumberOutId>() {
-            match out_id {
-                NumberOutId::Out => Some(NodeOutId::new(node_id, out_id)),
-                NumberOutId::Prout(prout) => Some(NodeOutId::new(node_id, out_id)),
-                _ => None,
-            }
+            Some(NodeOutId::new(node_id, out_id))
         } else {
             None
         }
@@ -96,30 +92,20 @@ impl Node for Multiply {
     }
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-        None
+        if let Some(in_id) = in_id.as_any().downcast_ref::<MultiplyInId>() {
+            Some(NodeInId::new(node_id, in_id))
+        } else {
+            None
+        }
     }
 
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        None
-        // if let Some(out_id) = out_id.as_any().downcast_ref::<NumberOutId>() {
-        //     match out_id {
-        //         NumberOutId::Out => {
-        //             dbg!(out_id);
-        //             None
-        //         }
-        //         _ => None,
-        //     }
-        // } else {
-        //     None
-        // }
+        if let Some(out_id) = out_id.as_any().downcast_ref::<MultiplyOutId>() {
+            Some(NodeOutId::new(node_id, out_id))
+        } else {
+            None
+        }
     }
-    // fn id_for(&self, inout_name: &str) -> Option<InoutId> {
-    //     match inout_name {
-    //         "term1" | "term2" => Some(InoutId::new_in_from(inout_name)),
-    //         "out" => Some(InoutId::new_out_from(inout_name)),
-    //         _ => None,
-    //     }
-    // }
 }
 
 #[derive(Debug)]
@@ -158,28 +144,18 @@ impl Node for Add {
     }
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-        None
+        if let Some(in_id) = in_id.as_any().downcast_ref::<AddInId>() {
+            Some(NodeInId::new(node_id, in_id))
+        } else {
+            None
+        }
     }
 
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        None
+        if let Some(out_id) = out_id.as_any().downcast_ref::<AddOutId>() {
+            Some(NodeOutId::new(node_id, out_id))
+        } else {
+            None
+        }
     }
-    // fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-    //     in_id == AddInId::Term1;
-
-    //     // match in_id {
-    //     //     &AddInId::Term1 => Some(NodeInId::new(node_id, in_id)),
-    //     //     &AddInId::Term1 => Some(NodeInId::new(node_id, in_id)),
-    //     //     _ => None,
-    //     // }
-    //     None
-    // }
-
-    // fn id_for(&self, inout_name: &str) -> Option<InoutId> {
-    //     match inout_name {
-    //         "term1" | "term2" => Some(InoutId::new_in_from(inout_name)),
-    //         "out" => Some(InoutId::new_out_from(inout_name)),
-    //         _ => None,
-    //     }
-    // }
 }
