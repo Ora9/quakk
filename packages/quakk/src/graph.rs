@@ -50,10 +50,39 @@ impl NodeHandle {
     // }
 
     pub fn node_in_id(&self, in_id: &dyn InId) -> Option<NodeInId> {
-        self.node.node_in_id(in_id, self.node_id())
+        // let a: &dyn InId = &MultiplyInId::Term1;
+
+        dbg!(in_id);
+
+        self.node().node_in_id(in_id, self.node_id())
+
+        //
+        // match in_id {
+        //     MixInId::InGain(n) => {}
+        //     MultiplyInId::Term1 => {
+        //         dbg!("oui");
+        //     }
+        //     _ => {
+        //         dbg!("non");
+        //     }
+        // }
+
+        // dbg!(in_id == (MultiplyInId::Term1: &dyn InId));
+
+        // let in_id = dyn_clone::clone_box(in_id);
+
+        // self.node.
+
+        // dbg!(in_id);
     }
 
     pub fn node_out_id(&self, out_id: &dyn OutId) -> Option<NodeOutId> {
+        self.node().node_out_id(out_id, self.node_id())
+
+        // let a: &dyn InId = &MultiplyInId::Term1;
+
+        // dbg!(out_id.as_any().downcast_ref::<NumberOutId>());
+
         // if let Some(out_id) = out_id.as_any().downcast_ref::<NumberOutId>() {
         //     match out_id {
         //         NumberOutId::Out => {
@@ -65,7 +94,6 @@ impl NodeHandle {
         //     }
         // }
 
-        self.node.node_out_id(out_id, self.node_id())
         // let a = out_id as &dyn Any;
         // dbg!(any::type_name_of_val(&a));
         // dbg!(a.downcast_ref::<NumberOutId>());
