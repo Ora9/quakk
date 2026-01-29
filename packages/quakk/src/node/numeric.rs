@@ -5,11 +5,6 @@ use crate::{
     id::{InId, InoutId, NodeId, NodeInId, NodeOutId, OutId},
 };
 
-// #[derive(Debug, PartialEq, Eq, Hash)]
-// enum NumberInout {
-//     Output,
-// }
-
 #[derive(Debug, Default)]
 pub struct Number {
     value: f32,
@@ -18,7 +13,6 @@ pub struct Number {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum NumberOutId {
     Out,
-    Prout(u64),
 }
 
 impl OutId for NumberOutId {}
@@ -43,13 +37,6 @@ impl Node for Number {
             None
         }
     }
-
-    // fn id_for(&self, inout_name: &str) -> Option<InoutId> {
-    //     match inout_name {
-    //         "out" => Some(InoutId::new_out_from("out")),
-    //         _ => None,
-    //     }
-    // }
 
     fn fold(&self, _out_id: &dyn OutId, _lasy_fold: LasyFold, _meta: Meta) -> anyhow::Result<f32> {
         Ok(self.value)
@@ -84,11 +71,10 @@ impl Node for Multiply {
     }
 
     fn fold(&self, _out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
-        // let term1 = lasy_fold.get_in(Box::new(MultiplyInId::Term1), meta)?;
-        // let term2 = lasy_fold.get_in(Box::new(MultiplyInId::Term2), meta)?;
+        let term1 = lasy_fold.get_in(&MultiplyInId::Term1, meta)?;
+        let term2 = lasy_fold.get_in(&MultiplyInId::Term2, meta)?;
 
-        // Ok(term1.mul(term2))
-        Ok(Default::default())
+        Ok(term1.mul(term2))
     }
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
@@ -136,11 +122,10 @@ impl Node for Add {
     }
 
     fn fold(&self, _out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
-        // let term1 = lasy_fold.get_in(&AddInId::Term1.into(), meta)?;
-        // let term2 = lasy_fold.get_in(&AddInId::Term2.into(), meta)?;
+        let term1 = lasy_fold.get_in(&AddInId::Term1, meta)?;
+        let term2 = lasy_fold.get_in(&AddInId::Term2, meta)?;
 
-        // Ok(term1.add(term2))
-        Ok(Default::default())
+        Ok(term1.add(term2))
     }
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {

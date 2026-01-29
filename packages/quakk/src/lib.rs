@@ -16,6 +16,7 @@ pub mod id;
 use anyhow::{Context, anyhow};
 use std::sync::{Arc, Mutex};
 
+use crate::id::InId;
 use crate::id::{NodeId, OutId};
 
 #[derive(Debug)]
@@ -38,18 +39,20 @@ impl Quakk {
         }
     }
 
-    pub fn fold_for(&self, out_id: &dyn OutId) -> Result<f32, anyhow::Error> {
+    pub fn fold_for(&self, graph_out_out_id: GraphOutOutId) -> Result<f32, anyhow::Error> {
+        let graph_out_out_id: &dyn OutId = &graph_out_out_id;
+
         let graph_out_handle = {
             self.graph
                 .lock()
-                .expect("The graph has beend poisened, who was it ?!")
+                .expect("The graph has beend poisoned, who was it ?!")
                 .graph_out_handle()
         };
 
         graph_out_handle
             .node()
             .fold(
-                out_id,
+                graph_out_out_id,
                 LasyFold::new(NodeId::GraphOut, self.graph.clone()),
                 self.base_meta,
             )

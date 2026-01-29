@@ -175,13 +175,13 @@ impl Graph {
             .expect("A graph must always have a `GraphOut` node")
     }
 
-    // pub fn graph_out_in_id_for(&self, in_name: &str) -> Option<NodeInId> {
-    //     self.graph_out_handle().in_id_for(in_name)
-    // }
+    pub fn graph_out_in_id(&self, in_id: &dyn InId) -> Option<NodeInId> {
+        self.graph_out_handle().node_in_id(in_id)
+    }
 
-    // pub fn graph_in_out_id_for(&self, out_name: &str) -> Option<NodeOutId> {
-    //     self.graph_in_handle().out_id_for(out_name)
-    // }
+    pub fn graph_in_out_id(&self, out_id: &dyn OutId) -> Option<NodeOutId> {
+        self.graph_in_handle().node_out_id(out_id)
+    }
 }
 
 // #[cfg(test)]
@@ -260,11 +260,18 @@ impl Graph {
 pub struct GraphIn;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum GraphInOutId {
+    Numeric,
+}
+
+impl OutId for GraphInOutId {}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum GraphInInId {
     Numeric,
 }
 
-impl InId for GraphInInId {}
+impl InId for GraphInOutId {}
 
 impl Node for GraphIn {
     fn new() -> Self {
@@ -292,20 +299,27 @@ impl Node for GraphIn {
     }
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-        if let Some(in_id) = in_id.as_any().downcast_ref::<GraphInInId>() {
-            Some(NodeInId::new(node_id, in_id))
-        } else {
-            None
-        }
+        None
     }
 
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        None
+        if let Some(out_id) = out_id.as_any().downcast_ref::<GraphInOutId>() {
+            Some(NodeOutId::new(node_id, out_id))
+        } else {
+            None
+        }
     }
 }
 
 #[derive(Debug)]
 pub struct GraphOut;
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum GraphOutInId {
+    Numeric,
+}
+
+impl InId for GraphOutInId {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum GraphOutOutId {
@@ -319,13 +333,6 @@ impl Node for GraphOut {
         Self
     }
 
-    // fn id_for(&self, inout_name: &str) -> Option<InoutId> {
-    //     match inout_name {
-    //         "numeric" => Some(InoutId::new_in_from(inout_name)),
-    //         _ => None,
-    //     }
-    // }
-
     fn title(&self) -> &str {
         "GraphOut"
     }
@@ -333,20 +340,25 @@ impl Node for GraphOut {
     fn fold(&self, out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
         dbg!(out_id);
 
-        Ok(Default::default())
-        // lasy_fold.get_in(out_i, meta)
+        if let Some(out_id) = out_id.as_any().downcast_ref::<GraphOutOutId>() {
+            match out_id {
+                GraphOutOutId::Numeric => lasy_fold.get_in(&GraphOutInId::Numeric, meta),
+            }
+        } else {
+            Err(anyhow!("not a valid out_id"))
+        }
     }
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-        None
-    }
-
-    fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        if let Some(out_id) = out_id.as_any().downcast_ref::<GraphOutOutId>() {
-            Some(NodeOutId::new(node_id, out_id))
+        if let Some(in_id) = in_id.as_any().downcast_ref::<GraphOutInId>() {
+            Some(NodeInId::new(node_id, in_id))
         } else {
             None
         }
+    }
+
+    fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
+        None
     }
 }
 
@@ -378,14 +390,6 @@ impl Node for Subgraph {
             graph: Arc::new(Mutex::new(Graph::new())),
         }
     }
-
-    // fn id_for(&self, inout_name: &str) -> Option<InoutId> {
-    //     match inout_name {
-    //         "in" => Some(InoutId::new_in_from(inout_name)),
-    //         "out" => Some(InoutId::new_out_from(inout_name)),
-    //         _ => None,
-    //     }
-    // }
 
     fn fold(
         &self,
@@ -436,17 +440,6 @@ impl Node for Subgraph {
             None
         }
     }
-}
-
-/// # Graph evaluation
-impl Graph {
-    // pub fn evaluate(&self, out_id: InoutId, lasy_fold: LasyExecutor, meta: Meta) {
-
-    //     let out_handle = self.graph_out_handle();
-    //     dbg!(out_id, out_handle);
-
-    //     lasy_fold.get()
-    // }
 }
 
 impl Default for Graph {

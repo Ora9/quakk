@@ -5,11 +5,6 @@ use quakk::{
     id::{InId, InoutId, NodeId, NodeInId, NodeOutId, OutId},
 };
 
-// #[derive(Debug, PartialEq, Eq, Hash)]
-// enum NumberInout {
-//     Output,
-// }
-
 #[derive(Debug, Default)]
 pub struct LFO {
     frequency: f32,
@@ -20,14 +15,6 @@ impl Node for LFO {
     fn new() -> Self {
         Self::default()
     }
-
-    // fn id_for(&self, inout_name: &str) -> Option<InoutId> {
-    //     match inout_name {
-    //         "out" => Some(InoutId::new_out_from("out")),
-    //         "frequency" | "phase" => Some(InoutId::new_in_from(inout_name)),
-    //         _ => None,
-    //     }
-    // }
 
     fn title(&self) -> &str {
         "LFO"
