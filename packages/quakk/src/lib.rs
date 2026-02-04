@@ -13,6 +13,9 @@ pub use meta::*;
 
 pub mod id;
 
+mod data;
+pub use data::Data;
+
 use anyhow::{Context, anyhow};
 use std::sync::{Arc, Mutex};
 
@@ -39,7 +42,7 @@ impl Quakk {
         }
     }
 
-    pub fn fold_for(&self, graph_out_out_id: GraphOutOutId) -> Result<f32, anyhow::Error> {
+    pub fn fold_for(&self, graph_out_out_id: GraphOutOutId) -> anyhow::Result<Data> {
         let graph_out_out_id: &dyn OutId = &graph_out_out_id;
 
         let graph_out_handle = {

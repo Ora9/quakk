@@ -8,7 +8,7 @@ use std::{
 };
 
 use crate::{
-    LasyFold, Meta, Node,
+    Data, LasyFold, Meta, Node,
     id::{InId, InoutId, NodeId, NodeInId, NodeInoutId, NodeOutId, OutId},
     numeric::{MultiplyInId, NumberOutId},
 };
@@ -289,13 +289,13 @@ impl Node for GraphIn {
         "GraphIn"
     }
 
-    fn fold(&self, out_id: &dyn OutId, _lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
+    fn fold(&self, out_id: &dyn OutId, _lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<Data> {
         dbg!(self.title());
 
         dbg!(out_id);
         dbg!(meta);
 
-        Ok(Default::default())
+        Ok(Data::new(f32::default()))
     }
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
@@ -337,7 +337,7 @@ impl Node for GraphOut {
         "GraphOut"
     }
 
-    fn fold(&self, out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
+    fn fold(&self, out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<Data> {
         dbg!(out_id);
 
         if let Some(out_id) = out_id.as_any().downcast_ref::<GraphOutOutId>() {
@@ -396,7 +396,7 @@ impl Node for Subgraph {
         container_out_id: &dyn OutId,
         lasy_fold: LasyFold,
         meta: Meta,
-    ) -> anyhow::Result<f32> {
+    ) -> anyhow::Result<Data> {
         // if self.id_for("out") == Some(container_out_id) {
 
         //     let inner_out_id = {
@@ -418,7 +418,7 @@ impl Node for Subgraph {
 
         // } else {
         // }
-        Ok(Default::default())
+        Ok(Data::new(f32::default()))
     }
 
     fn title(&self) -> &str {

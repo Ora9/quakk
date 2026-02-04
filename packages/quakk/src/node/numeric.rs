@@ -1,7 +1,9 @@
 use std::ops::{Add as opsAdd, Mul as opsMul};
 
+use anyhow::Context;
+
 use crate::{
-    LasyFold, Meta, Node,
+    Data, LasyFold, Meta, Node,
     id::{InId, InoutId, NodeId, NodeInId, NodeOutId, OutId},
 };
 
@@ -38,8 +40,8 @@ impl Node for Number {
         }
     }
 
-    fn fold(&self, _out_id: &dyn OutId, _lasy_fold: LasyFold, _meta: Meta) -> anyhow::Result<f32> {
-        Ok(self.value)
+    fn fold(&self, _out_id: &dyn OutId, _lasy_fold: LasyFold, _meta: Meta) -> anyhow::Result<Data> {
+        Ok(Data::new(self.value))
     }
 }
 
@@ -70,11 +72,19 @@ impl Node for Multiply {
         "Multiply"
     }
 
-    fn fold(&self, _out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
-        let term1 = lasy_fold.get_in(&MultiplyInId::Term1, meta)?;
-        let term2 = lasy_fold.get_in(&MultiplyInId::Term2, meta)?;
+    fn fold(&self, _out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<Data> {
+        let term1 = lasy_fold
+            .get_in(&MultiplyInId::Term1, meta)?
+            .downcast_ref::<f32>()
+            .cloned()
+            .context("Term1 is not a f32")?;
+        let term2 = lasy_fold
+            .get_in(&MultiplyInId::Term2, meta)?
+            .downcast_ref::<f32>()
+            .cloned()
+            .context("Term2 is not a f32")?;
 
-        Ok(term1.mul(term2))
+        Ok(Data::new(term1.mul(term2)))
     }
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
@@ -121,11 +131,19 @@ impl Node for Add {
         "Add"
     }
 
-    fn fold(&self, _out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
-        let term1 = lasy_fold.get_in(&AddInId::Term1, meta)?;
-        let term2 = lasy_fold.get_in(&AddInId::Term2, meta)?;
+    fn fold(&self, _out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<Data> {
+        let term1 = lasy_fold
+            .get_in(&AddInId::Term1, meta)?
+            .downcast_ref::<f32>()
+            .cloned()
+            .context("Term1 is not an f32")?;
+        let term2 = lasy_fold
+            .get_in(&AddInId::Term2, meta)?
+            .downcast_ref::<f32>()
+            .cloned()
+            .context("Term2 is not an f32")?;
 
-        Ok(term1.add(term2))
+        Ok(Data::new(term1.add(term2)))
     }
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {

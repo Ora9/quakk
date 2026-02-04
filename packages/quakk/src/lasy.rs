@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use anyhow::Context;
 
 use crate::{
-    Graph, Meta,
+    Data, Graph, Meta,
     id::{InId, InoutId, NodeId},
 };
 
@@ -43,7 +43,7 @@ impl LasyFold {
         Self { node_id, graph }
     }
 
-    pub fn get_in(&self, in_id: &dyn InId, meta: Meta) -> Result<f32, anyhow::Error> {
+    pub fn get_in(&self, in_id: &dyn InId, meta: Meta) -> anyhow::Result<Data> {
         let (in_node_handle, in_node_out_id) = {
             let graph = self
                 .graph

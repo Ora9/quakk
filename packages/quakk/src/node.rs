@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
 use crate::{
-    LasyFold, Meta, NodeId, OutId,
+    Data, LasyFold, Meta, NodeId, OutId,
     id::{InId, InoutId, NodeInId, NodeInoutId, NodeOutId},
 };
 
@@ -16,7 +16,7 @@ pub trait Node: Debug {
     /// The node "title" when displayed
     fn title(&self) -> &str;
 
-    fn fold(&self, out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32>;
+    fn fold(&self, out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<Data>;
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId>;
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId>;

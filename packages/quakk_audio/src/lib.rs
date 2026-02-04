@@ -1,7 +1,7 @@
 use std::ops::{Add as opsAdd, Mul as opsMul};
 
 use quakk::{
-    LasyFold, Meta, Node,
+    Data, LasyFold, Meta, Node,
     id::{InId, InoutId, NodeId, NodeInId, NodeOutId, OutId},
 };
 
@@ -20,8 +20,10 @@ impl Node for LFO {
         "LFO"
     }
 
-    fn fold(&self, out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<f32> {
-        Ok((meta.tick as f32).mul(self.frequency).add(self.phase))
+    fn fold(&self, out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<Data> {
+        Ok(Data::new(
+            (meta.tick as f32).mul(self.frequency).add(self.phase),
+        ))
     }
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
