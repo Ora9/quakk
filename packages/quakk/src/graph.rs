@@ -281,7 +281,7 @@ impl GraphIn {
 
 impl Node for GraphIn {
     fn initialize() -> Self {
-        Self::default()
+        Self
     }
 
     // fn id_for(&self, inout_name: &str) -> Option<InoutId> {
@@ -341,7 +341,7 @@ impl GraphOut {
 
 impl Node for GraphOut {
     fn initialize() -> Self {
-        Self::default()
+        Self
     }
 
     fn title(&self) -> &str {
