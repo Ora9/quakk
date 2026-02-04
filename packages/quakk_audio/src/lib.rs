@@ -11,8 +11,14 @@ pub struct LFO {
     phase: f32,
 }
 
-impl Node for LFO {
+impl LFO {
     fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl Node for LFO {
+    fn initialize() -> Self {
         Self::default()
     }
 

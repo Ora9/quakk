@@ -9,7 +9,7 @@ pub mod numeric;
 pub mod textual;
 
 pub trait Node: Debug {
-    fn new() -> Self
+    fn initialize() -> Self
     where
         Self: Sized;
 

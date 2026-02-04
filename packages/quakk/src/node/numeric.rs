@@ -19,9 +19,15 @@ pub enum NumberOutId {
 
 impl OutId for NumberOutId {}
 
+impl Number {
+    pub fn new(value: f32) -> Self {
+        Self { value }
+    }
+}
+
 impl Node for Number {
-    fn new() -> Self {
-        Self { value: 4.0 }
+    fn initialize() -> Self {
+        Self::default()
     }
 
     fn title(&self) -> &str {
@@ -60,12 +66,18 @@ pub enum MultiplyOutId {
 
 impl OutId for MultiplyOutId {}
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Multiply;
 
-impl Node for Multiply {
-    fn new() -> Self {
+impl Multiply {
+    pub fn new() -> Self {
         Self
+    }
+}
+
+impl Node for Multiply {
+    fn initialize() -> Self {
+        Self::default()
     }
 
     fn title(&self) -> &str {
@@ -104,7 +116,7 @@ impl Node for Multiply {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Add;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -122,9 +134,15 @@ pub enum AddOutId {
 
 impl OutId for AddOutId {}
 
-impl Node for Add {
-    fn new() -> Self {
+impl Add {
+    pub fn new() -> Self {
         Self
+    }
+}
+
+impl Node for Add {
+    fn initialize() -> Self {
+        Self::default()
     }
 
     fn title(&self) -> &str {

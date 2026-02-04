@@ -256,7 +256,7 @@ impl Graph {
     // unpatch nodes
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct GraphIn;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -273,9 +273,15 @@ pub enum GraphInInId {
 
 impl InId for GraphInOutId {}
 
-impl Node for GraphIn {
-    fn new() -> Self {
+impl GraphIn {
+    pub fn new() -> Self {
         Self
+    }
+}
+
+impl Node for GraphIn {
+    fn initialize() -> Self {
+        Self::default()
     }
 
     // fn id_for(&self, inout_name: &str) -> Option<InoutId> {
@@ -311,7 +317,7 @@ impl Node for GraphIn {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct GraphOut;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -328,9 +334,15 @@ pub enum GraphOutOutId {
 
 impl OutId for GraphOutOutId {}
 
-impl Node for GraphOut {
-    fn new() -> Self {
+impl GraphOut {
+    pub fn new() -> Self {
         Self
+    }
+}
+
+impl Node for GraphOut {
+    fn initialize() -> Self {
+        Self::default()
     }
 
     fn title(&self) -> &str {
@@ -381,14 +393,17 @@ struct SubgraphOutId {
 
 impl OutId for SubgraphOutId {}
 
-impl Node for Subgraph {
-    fn new() -> Self
-    where
-        Self: Sized,
-    {
+impl Subgraph {
+    pub fn new() -> Self {
         Self {
             graph: Arc::new(Mutex::new(Graph::new())),
         }
+    }
+}
+
+impl Node for Subgraph {
+    fn initialize() -> Self {
+        Self::default()
     }
 
     fn fold(
@@ -439,6 +454,12 @@ impl Node for Subgraph {
         } else {
             None
         }
+    }
+}
+
+impl Default for Subgraph {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

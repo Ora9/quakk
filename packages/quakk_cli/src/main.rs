@@ -6,9 +6,9 @@ fn main() {
     {
         let mut graph = qk.graph.lock().unwrap();
 
-        let number_a = graph.insert(Box::new(Number::new()));
-        let number_b = graph.insert(Box::new(Number::new()));
-        let number_c = graph.insert(Box::new(Number::new()));
+        let number_a = graph.insert(Box::new(Number::new(4.0)));
+        let number_b = graph.insert(Box::new(Number::new(4.0)));
+        let number_c = graph.insert(Box::new(Number::new(8.0)));
 
         let mult = graph.insert(Box::new(Multiply::new()));
         let add = graph.insert(Box::new(Add::new()));
