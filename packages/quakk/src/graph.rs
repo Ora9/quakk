@@ -4,6 +4,7 @@ use std::{
     collections::{HashMap, HashSet},
     fmt::Debug,
     ops::Sub,
+    rc::Rc,
     sync::{Arc, Mutex},
 };
 
@@ -19,7 +20,7 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct NodeHandle {
     id: NodeId,
-    node: Arc<Box<dyn Node>>,
+    node: Rc<Box<dyn Node>>,
 }
 
 impl NodeHandle {
@@ -29,7 +30,7 @@ impl NodeHandle {
     fn new(node_id: NodeId, node: Box<dyn Node>) -> Self {
         Self {
             id: node_id,
-            node: Arc::new(node),
+            node: Rc::new(node),
         }
     }
 
@@ -37,7 +38,7 @@ impl NodeHandle {
         self.id
     }
 
-    pub fn node(&self) -> Arc<Box<dyn Node>> {
+    pub fn node(&self) -> Rc<Box<dyn Node>> {
         self.node.clone()
     }
 
