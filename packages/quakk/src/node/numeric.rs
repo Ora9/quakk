@@ -98,14 +98,12 @@ impl Node for Arithmetics {
     fn fold(&self, _out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<Data> {
         let term1 = lasy_fold
             .get_in(&ArithmeticsInId::Term1, meta)?
-            .downcast_ref::<f32>()
-            .cloned()
-            .context("Term1 is not a f32")?;
+            .into_f32()
+            .context("type mismatch for Term1")?;
         let term2 = lasy_fold
             .get_in(&ArithmeticsInId::Term2, meta)?
-            .downcast_ref::<f32>()
-            .cloned()
-            .context("Term2 is not a f32")?;
+            .into_f32()
+            .context("type mismatch for Term2")?;
 
         use ArithmeticOperation::*;
         let res = match self.operation {

@@ -1,6 +1,9 @@
 use std::{any::Any, fmt::Debug};
 
+use anyhow::anyhow;
+
 pub trait DataType: Any + Debug {}
+
 impl<T> DataType for T where T: Any + Debug {}
 
 pub struct Data {
@@ -14,13 +17,23 @@ impl Data {
         }
     }
 
-    // pub fn as_f32(&self) -> anyhow::Result<f32> {
+    pub fn into_f32(self) -> Result<f32, anyhow::Error> {
+        self.downcast::<f32>().ok_or(anyhow!("not an f32"))
+    }
 
-    // }
+    pub fn into_string(self) -> Result<String, anyhow::Error> {
+        self.downcast::<String>().ok_or(anyhow!("not an f32"))
+    }
+
+    pub fn downcast<T: DataType>(self) -> Option<T> {
+        (self.inner as Box<dyn Any>)
+            .downcast::<T>()
+            .ok()
+            .map(|data| *data)
+    }
 
     pub fn downcast_ref<T: DataType>(&self) -> Option<&T> {
-        let inner = (&*self.inner) as &dyn Any;
-        inner.downcast_ref::<T>()
+        ((&*self.inner) as &dyn Any).downcast_ref::<T>()
     }
 }
 
@@ -29,9 +42,3 @@ impl Debug for Data {
         write!(f, "Data: {:?}", self.inner)
     }
 }
-
-// pub trait Value: Any {}
-
-// type Number = f32;
-
-// type Text = String;

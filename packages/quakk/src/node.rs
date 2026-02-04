@@ -8,6 +8,11 @@ use crate::{
 pub mod numeric;
 pub mod textual;
 
+#[derive(Debug)]
+pub struct DynNode {
+    node: Box<dyn Node>,
+}
+
 pub trait Node: Debug {
     fn initialize() -> Self
     where
