@@ -1,4 +1,4 @@
-use std::ops::{Add as opsAdd, Mul as opsMul};
+use std::ops::{Add as opsAdd, Div, Mul as opsMul, Sub};
 
 use anyhow::Context;
 
@@ -51,56 +51,75 @@ impl Node for NumericConstant {
     }
 }
 
+#[derive(Debug, Default)]
+pub enum ArithmeticOperation {
+    #[default]
+    Addition,
+    Substraction,
+    Multiplication,
+    Division,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum MultiplyInId {
+pub enum ArithmeticsInId {
     Term1,
     Term2,
 }
 
-impl InId for MultiplyInId {}
+impl InId for ArithmeticsInId {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum MultiplyOutId {
+pub enum ArithmeticsOutId {
     Out,
 }
 
-impl OutId for MultiplyOutId {}
+impl OutId for ArithmeticsOutId {}
 
 #[derive(Debug, Default)]
-pub struct Multiply;
+pub struct Arithmetics {
+    operation: ArithmeticOperation,
+}
 
-impl Multiply {
-    pub fn new() -> Self {
-        Self
+impl Arithmetics {
+    pub fn new(operation: ArithmeticOperation) -> Self {
+        Self { operation }
     }
 }
 
-impl Node for Multiply {
+impl Node for Arithmetics {
     fn initialize() -> Self {
         Self::default()
     }
 
     fn title(&self) -> &str {
-        "Multiply"
+        "Arithmetics"
     }
 
     fn fold(&self, _out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<Data> {
         let term1 = lasy_fold
-            .get_in(&MultiplyInId::Term1, meta)?
+            .get_in(&ArithmeticsInId::Term1, meta)?
             .downcast_ref::<f32>()
             .cloned()
             .context("Term1 is not a f32")?;
         let term2 = lasy_fold
-            .get_in(&MultiplyInId::Term2, meta)?
+            .get_in(&ArithmeticsInId::Term2, meta)?
             .downcast_ref::<f32>()
             .cloned()
             .context("Term2 is not a f32")?;
 
-        Ok(Data::new(term1.mul(term2)))
+        use ArithmeticOperation::*;
+        let res = match self.operation {
+            Addition => term1.add(term2),
+            Substraction => term1.sub(term2),
+            Multiplication => term1.mul(term2),
+            Division => term1.div(term2),
+        };
+
+        Ok(Data::new(res))
     }
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-        if let Some(in_id) = in_id.as_any().downcast_ref::<MultiplyInId>() {
+        if let Some(in_id) = in_id.as_any().downcast_ref::<ArithmeticsInId>() {
             Some(NodeInId::new(node_id, in_id))
         } else {
             None
@@ -108,72 +127,7 @@ impl Node for Multiply {
     }
 
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        if let Some(out_id) = out_id.as_any().downcast_ref::<MultiplyOutId>() {
-            Some(NodeOutId::new(node_id, out_id))
-        } else {
-            None
-        }
-    }
-}
-
-#[derive(Debug, Default)]
-pub struct Add;
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum AddInId {
-    Term1,
-    Term2,
-}
-
-impl InId for AddInId {}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum AddOutId {
-    Out,
-}
-
-impl OutId for AddOutId {}
-
-impl Add {
-    pub fn new() -> Self {
-        Self
-    }
-}
-
-impl Node for Add {
-    fn initialize() -> Self {
-        Self::default()
-    }
-
-    fn title(&self) -> &str {
-        "Add"
-    }
-
-    fn fold(&self, _out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<Data> {
-        let term1 = lasy_fold
-            .get_in(&AddInId::Term1, meta)?
-            .downcast_ref::<f32>()
-            .cloned()
-            .context("Term1 is not an f32")?;
-        let term2 = lasy_fold
-            .get_in(&AddInId::Term2, meta)?
-            .downcast_ref::<f32>()
-            .cloned()
-            .context("Term2 is not an f32")?;
-
-        Ok(Data::new(term1.add(term2)))
-    }
-
-    fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-        if let Some(in_id) = in_id.as_any().downcast_ref::<AddInId>() {
-            Some(NodeInId::new(node_id, in_id))
-        } else {
-            None
-        }
-    }
-
-    fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        if let Some(out_id) = out_id.as_any().downcast_ref::<AddOutId>() {
+        if let Some(out_id) = out_id.as_any().downcast_ref::<ArithmeticsOutId>() {
             Some(NodeOutId::new(node_id, out_id))
         } else {
             None

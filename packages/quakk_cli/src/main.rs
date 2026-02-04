@@ -10,28 +10,30 @@ fn main() {
         let number_b = graph.insert(Box::new(NumericConstant::new(4.0)));
         let number_c = graph.insert(Box::new(NumericConstant::new(8.0)));
 
-        let mult = graph.insert(Box::new(Multiply::new()));
-        let add = graph.insert(Box::new(Add::new()));
+        let mult = graph.insert(Box::new(Arithmetics::new(
+            ArithmeticOperation::Multiplication,
+        )));
+        let add = graph.insert(Box::new(Arithmetics::new(ArithmeticOperation::Addition)));
 
         let _ = graph.patch(
             number_a.node_out_id(&NumericConstantOutId::Out).unwrap(),
-            mult.node_in_id(&MultiplyInId::Term1).unwrap(),
+            mult.node_in_id(&ArithmeticsInId::Term1).unwrap(),
         );
         let _ = graph.patch(
             number_b.node_out_id(&NumericConstantOutId::Out).unwrap(),
-            mult.node_in_id(&MultiplyInId::Term2).unwrap(),
+            mult.node_in_id(&ArithmeticsInId::Term2).unwrap(),
         );
         let _ = graph.patch(
-            mult.node_out_id(&MultiplyOutId::Out).unwrap(),
-            add.node_in_id(&AddInId::Term1).unwrap(),
+            mult.node_out_id(&ArithmeticsOutId::Out).unwrap(),
+            add.node_in_id(&ArithmeticsInId::Term1).unwrap(),
         );
         let _ = graph.patch(
             number_c.node_out_id(&NumericConstantOutId::Out).unwrap(),
-            add.node_in_id(&AddInId::Term2).unwrap(),
+            add.node_in_id(&ArithmeticsInId::Term2).unwrap(),
         );
 
         let num_out = graph.graph_out_in_id(&GraphOutInId::Numeric).unwrap();
-        let _ = graph.patch(add.node_out_id(&AddOutId::Out).unwrap(), num_out);
+        let _ = graph.patch(add.node_out_id(&ArithmeticsOutId::Out).unwrap(), num_out);
 
         dbg!(graph);
     }
