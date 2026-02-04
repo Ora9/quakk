@@ -240,7 +240,7 @@ impl Debug for NodeOutId {
 ///
 /// This id is designed to identify an inout ("in" or "out") in the graph
 /// It ties
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub enum NodeInoutId {
     In(NodeInId),
     Out(NodeOutId),
@@ -251,15 +251,6 @@ impl NodeInoutId {
         match self {
             Self::In(node_in_id) => node_in_id.node_id,
             Self::Out(node_out_id) => node_out_id.node_id,
-        }
-    }
-}
-
-impl Debug for NodeInoutId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::In(node_in_id) => write!(f, "{:?}", self),
-            Self::Out(node_out_id) => write!(f, "{:?}", self),
         }
     }
 }
