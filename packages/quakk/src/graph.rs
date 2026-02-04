@@ -158,7 +158,7 @@ impl Graph {
     pub fn handle_for_id(&self, node_id: NodeId) -> Option<NodeHandle> {
         self.vertices
             .get(&node_id)
-            .and_then(|vertex| Some(vertex.node_handle.clone()))
+            .map(|vertex| vertex.node_handle.clone())
     }
 
     pub(crate) fn vertex_for_id(&self, node_id: NodeId) -> Option<&Vertex> {
@@ -309,11 +309,10 @@ impl Node for GraphIn {
     }
 
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        if let Some(out_id) = out_id.as_any().downcast_ref::<GraphInOutId>() {
-            Some(NodeOutId::new(node_id, out_id))
-        } else {
-            None
-        }
+        out_id
+            .as_any()
+            .downcast_ref::<GraphInOutId>()
+            .map(|out_id| NodeOutId::new(node_id, out_id))
     }
 }
 
@@ -362,11 +361,10 @@ impl Node for GraphOut {
     }
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-        if let Some(in_id) = in_id.as_any().downcast_ref::<GraphOutInId>() {
-            Some(NodeInId::new(node_id, in_id))
-        } else {
-            None
-        }
+        in_id
+            .as_any()
+            .downcast_ref::<GraphOutInId>()
+            .map(|in_id| NodeInId::new(node_id, in_id))
     }
 
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
@@ -441,19 +439,17 @@ impl Node for Subgraph {
     }
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-        if let Some(in_id) = in_id.as_any().downcast_ref::<SubgraphInId>() {
-            Some(NodeInId::new(node_id, in_id))
-        } else {
-            None
-        }
+        in_id
+            .as_any()
+            .downcast_ref::<SubgraphInId>()
+            .map(|in_id| NodeInId::new(node_id, in_id))
     }
 
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        if let Some(out_id) = out_id.as_any().downcast_ref::<SubgraphOutId>() {
-            Some(NodeOutId::new(node_id, out_id))
-        } else {
-            None
-        }
+        out_id
+            .as_any()
+            .downcast_ref::<SubgraphOutId>()
+            .map(|out_id| NodeOutId::new(node_id, out_id))
     }
 }
 

@@ -39,11 +39,10 @@ impl Node for NumericConstant {
     }
 
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        if let Some(out_id) = out_id.as_any().downcast_ref::<NumericConstantOutId>() {
-            Some(NodeOutId::new(node_id, out_id))
-        } else {
-            None
-        }
+        out_id
+            .as_any()
+            .downcast_ref::<NumericConstantOutId>()
+            .map(|out_id| NodeOutId::new(node_id, out_id))
     }
 
     fn fold(&self, _out_id: &dyn OutId, _lasy_fold: LasyFold, _meta: Meta) -> anyhow::Result<Data> {
@@ -117,18 +116,16 @@ impl Node for Arithmetics {
     }
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-        if let Some(in_id) = in_id.as_any().downcast_ref::<ArithmeticsInId>() {
-            Some(NodeInId::new(node_id, in_id))
-        } else {
-            None
-        }
+        in_id
+            .as_any()
+            .downcast_ref::<ArithmeticsInId>()
+            .map(|in_id| NodeInId::new(node_id, in_id))
     }
 
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        if let Some(out_id) = out_id.as_any().downcast_ref::<ArithmeticsOutId>() {
-            Some(NodeOutId::new(node_id, out_id))
-        } else {
-            None
-        }
+        out_id
+            .as_any()
+            .downcast_ref::<ArithmeticsOutId>()
+            .map(|out_id| NodeOutId::new(node_id, out_id))
     }
 }
