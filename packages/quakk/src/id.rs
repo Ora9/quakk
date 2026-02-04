@@ -123,11 +123,6 @@ impl NodeId {
     pub fn new_node_from(input: &str) -> Self {
         Self::Node(HashId::new_from(input))
     }
-
-    // /// Return a [`NodeInoutId`] based on self and the given [`InoutId`]
-    // pub fn into_node_inout_id(self, inout_id: InoutId) -> NodeInoutId {
-    //     NodeInoutId::new(self, inout_id)
-    // }
 }
 
 impl Debug for NodeId {
@@ -149,84 +144,6 @@ pub trait OutId: Any + Debug + DynClone + DynEq + DynHash {}
 dyn_clone::clone_trait_object!(OutId);
 dyn_eq::eq_trait_object!(OutId);
 dyn_hash::hash_trait_object!(OutId);
-
-// #[derive(Debug, PartialEq, Eq, Clone)]
-// enum MixInId {
-//     In(u8),
-//     Cv,
-//     Prout,
-// }
-// impl InId for MixInId {}
-
-// pub trait InIdName: Debug + Hash {}
-
-// /// InId identifies an
-// #[derive(PartialEq, Eq, Clone, Copy, Hash)]
-// pub struct InId {
-//     id: u64,
-// }
-
-// impl InId {
-//     pub fn new_from(in_name: &dyn InIdName) -> Self {
-//         let mut hasher = DefaultHasher::new();
-//         in_name.hash(hasher);
-//         Self
-//     }
-
-//     // pub fn new(in_name: &str) -> Self {
-//     //     Self {
-//     //         id: HashId::new_from(in_name),
-//     //     }
-//     // }
-// }
-
-// impl Debug for InId {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(f, "In({:?})", self.id)
-//     }
-// }
-
-// impl TryFrom<InoutId> for InId {
-//     type Error = anyhow::Error;
-
-//     fn try_from(inout_id: InoutId) -> anyhow::Result<Self> {
-//         match inout_id {
-//             InoutId::In(in_id) => Ok(in_id),
-//             _ => Err(anyhow!("This `InoutId` is not of variant `In`")),
-//         }
-//     }
-// }
-
-// /// `OutId` identifies an output in a node
-// #[derive(PartialEq, Eq, Clone, Copy, Hash)]
-// pub struct OutId {
-//     id: HashId,
-// }
-
-// impl OutId {
-//     pub fn new(out_name: &str) -> Self {
-//         Self {
-//             id: HashId::new_from(out_name),
-//         }
-//     }
-// }
-
-// impl Debug for OutId {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(f, "In({:?})", self.id)
-//     }
-// }
-
-// impl TryFrom<InoutId> for OutId {
-//     type Error = anyhow::Error;
-
-//     fn try_from(inout_id: InoutId) -> anyhow::Result<Self> {
-//         match inout_id {
-//             InoutId::Out(out_id) => Ok(out_id),
-//             _ => Err(anyhow!("This `InoutId` is not of variant `Out`")),
-//         }
-//     }
-// }
 
 /// In the [`Graph`](quakk::Graph), each [`Nodes`](quakk::Node) ins and outs have an id.
 ///
@@ -252,23 +169,6 @@ pub enum InoutId {
     Out(Box<dyn OutId>),
 }
 
-// impl InoutId {
-//     /// Create a new `InoutId::In` based on the given inout name
-//     pub fn new_in_from(in_name: &str) -> Self {
-//         Self::In(InId::new(in_name))
-//     }
-
-//     /// Create a new `InoutId::Out` based on the given inout name
-//     pub fn new_out_from(out_name: &str) -> Self {
-//         Self::Out(OutId::new(out_name))
-//     }
-
-//     /// Return a [`NodeInoutId`] based on self and the given [`NodeId`]
-//     pub fn into_node_inout_id(self, node_id: NodeId) -> NodeInoutId {
-//         NodeInoutId::new(node_id, self)
-//     }
-// }
-
 impl Debug for InoutId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -277,18 +177,6 @@ impl Debug for InoutId {
         }
     }
 }
-
-// impl From<InId> for InoutId {
-//     fn from(value: InId) -> Self {
-//         Self::In(value)
-//     }
-// }
-
-// impl From<OutId> for InoutId {
-//     fn from(value: OutId) -> Self {
-//         Self::Out(value)
-//     }
-// }
 
 #[derive(PartialEq, Eq, Clone, Hash)]
 pub struct NodeInId {
@@ -359,42 +247,12 @@ pub enum NodeInoutId {
 }
 
 impl NodeInoutId {
-    // pub fn new(node_id: NodeId, inout_id: InoutId) -> Self {
-    //     match inout_id {
-    //         InoutId::In(in_id) => Self::new_in(node_id, in_id),
-    //         InoutId::Out(out_id) => Self::new_out(node_id, out_id),
-    //     }
-    // }
-
-    // pub fn new_in(node_id: NodeId, in_id: InId) -> Self {
-    //     Self::In(NodeInId::new(node_id, in_id))
-    // }
-
-    // pub fn new_out(node_id: NodeId, out_id: OutId) -> Self {
-    //     Self::Out(NodeOutId::new(node_id, out_id))
-    // }
-
-    // pub fn new_in_from(node_id: NodeId, inout_name: &str) -> Self {
-    //     Self::new(node_id, InoutId::new_in_from(inout_name))
-    // }
-
-    // pub fn new_out_from(node_id: NodeId, inout_name: &str) -> Self {
-    //     Self::new(node_id, InoutId::new_out_from(inout_name))
-    // }
-
     pub fn node_id(&self) -> NodeId {
         match self {
             Self::In(node_in_id) => node_in_id.node_id,
             Self::Out(node_out_id) => node_out_id.node_id,
         }
     }
-
-    // pub fn inout_id(&self) -> InoutId {
-    //     match self {
-    //         Self::In(node_in_id) => node_in_id.in_id.into(),
-    //         Self::Out(node_out_id) => node_out_id.out_id.into(),
-    //     }
-    // }
 }
 
 impl Debug for NodeInoutId {
