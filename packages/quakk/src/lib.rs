@@ -28,8 +28,8 @@ pub struct Quakk {
     pub base_meta: Meta,
 }
 
-impl Quakk {
-    pub fn new() -> Self {
+impl Default for Quakk {
+    fn default() -> Self {
         let graph = Arc::new(Mutex::new(Graph::new()));
 
         Self {
@@ -40,6 +40,12 @@ impl Quakk {
 
             graph,
         }
+    }
+}
+
+impl Quakk {
+    pub fn new() -> Self {
+        Self::default()
     }
 
     pub fn fold_for(&self, graph_out_out_id: GraphOutOutId) -> anyhow::Result<Data> {
