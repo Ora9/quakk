@@ -6,19 +6,19 @@ fn main() {
     {
         let mut graph = qk.graph.lock().unwrap();
 
-        let number_a = graph.insert(Box::new(Number::new(4.0)));
-        let number_b = graph.insert(Box::new(Number::new(4.0)));
-        let number_c = graph.insert(Box::new(Number::new(8.0)));
+        let number_a = graph.insert(Box::new(NumericConstant::new(4.0)));
+        let number_b = graph.insert(Box::new(NumericConstant::new(4.0)));
+        let number_c = graph.insert(Box::new(NumericConstant::new(8.0)));
 
         let mult = graph.insert(Box::new(Multiply::new()));
         let add = graph.insert(Box::new(Add::new()));
 
         let _ = graph.patch(
-            number_a.node_out_id(&NumberOutId::Out).unwrap(),
+            number_a.node_out_id(&NumericConstantOutId::Out).unwrap(),
             mult.node_in_id(&MultiplyInId::Term1).unwrap(),
         );
         let _ = graph.patch(
-            number_b.node_out_id(&NumberOutId::Out).unwrap(),
+            number_b.node_out_id(&NumericConstantOutId::Out).unwrap(),
             mult.node_in_id(&MultiplyInId::Term2).unwrap(),
         );
         let _ = graph.patch(
@@ -26,7 +26,7 @@ fn main() {
             add.node_in_id(&AddInId::Term1).unwrap(),
         );
         let _ = graph.patch(
-            number_c.node_out_id(&NumberOutId::Out).unwrap(),
+            number_c.node_out_id(&NumericConstantOutId::Out).unwrap(),
             add.node_in_id(&AddInId::Term2).unwrap(),
         );
 

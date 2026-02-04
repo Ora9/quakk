@@ -10,7 +10,7 @@ use std::{
 use crate::{
     Data, LasyFold, Meta, Node,
     id::{InId, InoutId, NodeId, NodeInId, NodeInoutId, NodeOutId, OutId},
-    numeric::{MultiplyInId, NumberOutId},
+    numeric::{MultiplyInId, NumericConstantOutId},
 };
 
 /// `NodeHandle` is a cheaply cloned reference to a node

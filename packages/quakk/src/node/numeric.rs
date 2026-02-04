@@ -8,30 +8,30 @@ use crate::{
 };
 
 #[derive(Debug, Default)]
-pub struct Number {
+pub struct NumericConstant {
     value: f32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum NumberOutId {
+pub enum NumericConstantOutId {
     Out,
 }
 
-impl OutId for NumberOutId {}
+impl OutId for NumericConstantOutId {}
 
-impl Number {
+impl NumericConstant {
     pub fn new(value: f32) -> Self {
         Self { value }
     }
 }
 
-impl Node for Number {
+impl Node for NumericConstant {
     fn initialize() -> Self {
         Self::default()
     }
 
     fn title(&self) -> &str {
-        "Number"
+        "Numeric Constant"
     }
 
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
@@ -39,7 +39,7 @@ impl Node for Number {
     }
 
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        if let Some(out_id) = out_id.as_any().downcast_ref::<NumberOutId>() {
+        if let Some(out_id) = out_id.as_any().downcast_ref::<NumericConstantOutId>() {
             Some(NodeOutId::new(node_id, out_id))
         } else {
             None
