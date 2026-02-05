@@ -7,6 +7,7 @@ pub use lasy::*;
 mod node;
 pub use node::Node;
 pub use node::numeric;
+pub use node::textual;
 
 mod meta;
 pub use meta::*;
