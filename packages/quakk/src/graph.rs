@@ -17,6 +17,8 @@ use crate::{
 /// `NodeHandle` is a cheaply cloned reference to a node
 ///
 /// This struct is returned when inserting a [`Node`] into a [`Graph`]
+///
+/// It contain the node with the id it has been given
 #[derive(Debug, Clone)]
 pub struct NodeHandle {
     id: NodeId,
@@ -34,10 +36,12 @@ impl NodeHandle {
         }
     }
 
+    /// Return the [`NodeId`] given by the [`Graph`]
     pub fn node_id(&self) -> NodeId {
         self.id
     }
 
+    /// Return a reference to the contained [`Node`]
     pub fn node(&self) -> Rc<Box<dyn Node>> {
         self.node.clone()
     }
@@ -71,7 +75,7 @@ impl NodeHandle {
     // }
 }
 
-/// `Vertex` is an item in the graph, it holds a [`NodeHandle`], but also all
+/// `Vertex` is an item in the graph, it holds a [`NodeHandle`], and keep track of all
 /// inbound and outbound connection of the node
 #[derive(Debug)]
 pub(crate) struct Vertex {
@@ -141,6 +145,7 @@ impl Graph {
         self.insert_with_id(node, node_id)
     }
 
+    /// Remove a [`Node`] given its [`NodeId`]
     pub fn remove(&mut self, node_id: NodeId) -> Result<(), anyhow::Error> {
         match node_id {
             NodeId::GraphIn | NodeId::GraphOut => Err(anyhow!("Cannot remove the graph in or out")),
