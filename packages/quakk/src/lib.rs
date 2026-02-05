@@ -26,21 +26,13 @@ use crate::id::{NodeId, OutId};
 #[derive(Debug)]
 pub struct Quakk {
     pub graph: Arc<Mutex<Graph>>,
-    pub base_meta: Meta,
 }
 
 impl Default for Quakk {
     fn default() -> Self {
         let graph = Arc::new(Mutex::new(Graph::new()));
 
-        Self {
-            base_meta: Meta {
-                quality: Quality::Balanced,
-                tick: 0,
-            },
-
-            graph,
-        }
+        Self { graph }
     }
 }
 
@@ -64,7 +56,10 @@ impl Quakk {
             .fold(
                 graph_out_out_id,
                 LasyFold::new(NodeId::GraphOut, self.graph.clone()),
-                self.base_meta,
+                Meta {
+                    quality: Quality::Balanced,
+                    tick: 0,
+                },
             )
             .context("Could not evaluate the graph")
     }
