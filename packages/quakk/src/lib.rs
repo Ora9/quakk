@@ -41,7 +41,7 @@ impl Quakk {
         Self::default()
     }
 
-    pub fn fold_for(&self, graph_out_out_id: GraphOutOutId) -> anyhow::Result<Data> {
+    pub fn fold_for(&self, graph_out_out_id: GraphOutOut) -> anyhow::Result<Data> {
         let graph_out_out_id: &dyn OutId = &graph_out_out_id;
 
         let graph_out_handle = {

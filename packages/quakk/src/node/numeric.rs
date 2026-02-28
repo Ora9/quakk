@@ -13,11 +13,11 @@ pub struct NumericConstant {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum NumericConstantOutId {
+pub enum NumericConstantOut {
     Out,
 }
 
-impl OutId for NumericConstantOutId {}
+impl OutId for NumericConstantOut {}
 
 impl NumericConstant {
     pub fn new(value: f32) -> Self {
@@ -41,7 +41,7 @@ impl Node for NumericConstant {
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
         out_id
             .as_any()
-            .downcast_ref::<NumericConstantOutId>()
+            .downcast_ref::<NumericConstantOut>()
             .map(|out_id| NodeOutId::new(node_id, out_id))
     }
 
@@ -60,19 +60,19 @@ pub enum ArithmeticOperation {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum ArithmeticsInId {
+pub enum ArithmeticsIn {
     Term1,
     Term2,
 }
 
-impl InId for ArithmeticsInId {}
+impl InId for ArithmeticsIn {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum ArithmeticsOutId {
+pub enum ArithmeticsOut {
     Out,
 }
 
-impl OutId for ArithmeticsOutId {}
+impl OutId for ArithmeticsOut {}
 
 #[derive(Debug, Default)]
 pub struct Arithmetics {
@@ -96,11 +96,11 @@ impl Node for Arithmetics {
 
     fn fold(&self, _out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<Data> {
         let term1 = lasy_fold
-            .get_in(&ArithmeticsInId::Term1, meta)?
+            .get_in(&ArithmeticsIn::Term1, meta)?
             .into_f32()
             .context("type mismatch for Term1")?;
         let term2 = lasy_fold
-            .get_in(&ArithmeticsInId::Term2, meta)?
+            .get_in(&ArithmeticsIn::Term2, meta)?
             .into_f32()
             .context("type mismatch for Term2")?;
 
@@ -118,14 +118,14 @@ impl Node for Arithmetics {
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
         in_id
             .as_any()
-            .downcast_ref::<ArithmeticsInId>()
+            .downcast_ref::<ArithmeticsIn>()
             .map(|in_id| NodeInId::new(node_id, in_id))
     }
 
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
         out_id
             .as_any()
-            .downcast_ref::<ArithmeticsOutId>()
+            .downcast_ref::<ArithmeticsOut>()
             .map(|out_id| NodeOutId::new(node_id, out_id))
     }
 }

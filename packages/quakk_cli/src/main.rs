@@ -1,8 +1,8 @@
 use quakk::{
-    GraphOut, GraphOutInId, GraphOutOutId, LasyFold, Node, Quakk,
+    GraphOut, GraphOutIn, GraphOutOut, LasyFold, Node, Quakk,
     id::InId,
     numeric::*,
-    textual::{TextConstant, TextConstantOutId, TextSplit, TextSplitInId, TextSplitOutId},
+    textual::{TextConstant, TextConstantOut, TextSplit, TextSplitIn, TextSplitOut},
 };
 
 fn main() {
@@ -23,43 +23,43 @@ fn main() {
         )));
 
         let _ = graph.patch(
-            number_a.node_out_id(&NumericConstantOutId::Out).unwrap(),
-            mult.node_in_id(&ArithmeticsInId::Term1).unwrap(),
+            number_a.node_out_id(&NumericConstantOut::Out).unwrap(),
+            mult.node_in_id(&ArithmeticsIn::Term1).unwrap(),
         );
         let _ = graph.patch(
-            number_b.node_out_id(&NumericConstantOutId::Out).unwrap(),
-            mult.node_in_id(&ArithmeticsInId::Term2).unwrap(),
+            number_b.node_out_id(&NumericConstantOut::Out).unwrap(),
+            mult.node_in_id(&ArithmeticsIn::Term2).unwrap(),
         );
         let _ = graph.patch(
-            mult.node_out_id(&ArithmeticsOutId::Out).unwrap(),
-            add.node_in_id(&ArithmeticsInId::Term1).unwrap(),
+            mult.node_out_id(&ArithmeticsOut::Out).unwrap(),
+            add.node_in_id(&ArithmeticsIn::Term1).unwrap(),
         );
         let _ = graph.patch(
-            number_c.node_out_id(&NumericConstantOutId::Out).unwrap(),
-            add.node_in_id(&ArithmeticsInId::Term2).unwrap(),
+            number_c.node_out_id(&NumericConstantOut::Out).unwrap(),
+            add.node_in_id(&ArithmeticsIn::Term2).unwrap(),
         );
 
         let textconst = graph.insert(Box::new(TextConstant::new("Hello World!".to_string())));
         let textsplit = graph.insert(Box::new(TextSplit::default()));
 
         let _ = graph.patch(
-            add.node_out_id(&ArithmeticsOutId::Out).unwrap(),
-            textsplit.node_in_id(&TextSplitInId::At).unwrap(),
+            add.node_out_id(&ArithmeticsOut::Out).unwrap(),
+            textsplit.node_in_id(&TextSplitIn::At).unwrap(),
         );
 
         let _ = graph.patch(
-            textconst.node_out_id(&TextConstantOutId::Out).unwrap(),
-            textsplit.node_in_id(&TextSplitInId::Text).unwrap(),
+            textconst.node_out_id(&TextConstantOut::Out).unwrap(),
+            textsplit.node_in_id(&TextSplitIn::Text).unwrap(),
         );
 
-        let num_out = graph.graph_out_in_id(&GraphOutInId::Numeric).unwrap();
+        let num_out = graph.graph_out_in_id(&GraphOutIn::Numeric).unwrap();
         let _ = graph.patch(
-            textsplit.node_out_id(&TextSplitOutId::Start).unwrap(),
+            textsplit.node_out_id(&TextSplitOut::Start).unwrap(),
             num_out,
         );
 
         dbg!(graph);
     }
 
-    dbg!(qk.fold_for(GraphOutOutId::Numeric).unwrap());
+    dbg!(qk.fold_for(GraphOutOut::Numeric).unwrap());
 }

@@ -11,11 +11,11 @@ pub struct TextConstant {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum TextConstantOutId {
+pub enum TextConstantOut {
     Out,
 }
 
-impl OutId for TextConstantOutId {}
+impl OutId for TextConstantOut {}
 
 impl TextConstant {
     pub fn new(value: String) -> Self {
@@ -39,7 +39,7 @@ impl Node for TextConstant {
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
         out_id
             .as_any()
-            .downcast_ref::<TextConstantOutId>()
+            .downcast_ref::<TextConstantOut>()
             .map(|out_id| NodeOutId::new(node_id, out_id))
     }
 
@@ -52,20 +52,20 @@ impl Node for TextConstant {
 pub struct TextSplit;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum TextSplitInId {
+pub enum TextSplitIn {
     Text,
     At,
 }
 
-impl InId for TextSplitInId {}
+impl InId for TextSplitIn {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum TextSplitOutId {
+pub enum TextSplitOut {
     Start,
     End,
 }
 
-impl OutId for TextSplitOutId {}
+impl OutId for TextSplitOut {}
 
 impl Node for TextSplit {
     fn title(&self) -> &str {
@@ -82,35 +82,35 @@ impl Node for TextSplit {
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
         in_id
             .as_any()
-            .downcast_ref::<TextSplitInId>()
+            .downcast_ref::<TextSplitIn>()
             .map(|out_id| NodeInId::new(node_id, in_id))
     }
 
     fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
         out_id
             .as_any()
-            .downcast_ref::<TextSplitOutId>()
+            .downcast_ref::<TextSplitOut>()
             .map(|out_id| NodeOutId::new(node_id, out_id))
     }
 
     fn fold(&self, out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<Data> {
         let text = lasy_fold
-            .get_in(&TextSplitInId::Text, meta)?
+            .get_in(&TextSplitIn::Text, meta)?
             .into_string()
             .context("type mismatch for Text, expected String")?;
         let at = lasy_fold
-            .get_in(&TextSplitInId::At, meta)?
+            .get_in(&TextSplitIn::At, meta)?
             .into_f32()
             .context("type mismatch for Term2, expected f32")?;
 
         dbg!(at as usize);
-        match out_id.as_any().downcast_ref::<TextSplitOutId>() {
+        match out_id.as_any().downcast_ref::<TextSplitOut>() {
             Some(out_id) => {
                 let split = text.split_at(at as usize);
 
                 match out_id {
-                    TextSplitOutId::Start => Ok(Data::new(split.0.to_string())),
-                    TextSplitOutId::End => Ok(Data::new(split.1.to_string())),
+                    TextSplitOut::Start => Ok(Data::new(split.0.to_string())),
+                    TextSplitOut::End => Ok(Data::new(split.1.to_string())),
                 }
             }
             None => Err(anyhow!("Not a valid out_id")),

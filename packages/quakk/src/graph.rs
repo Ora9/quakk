@@ -11,7 +11,7 @@ use std::{
 use crate::{
     Data, LasyFold, Meta, Node,
     id::{InId, InoutId, NodeId, NodeInId, NodeInoutId, NodeOutId, OutId},
-    numeric::{ArithmeticsInId, NumericConstantOutId},
+    numeric::{ArithmeticsIn, NumericConstantOut},
 };
 
 /// `NodeHandle` is a cheaply cloned reference to a node
@@ -326,18 +326,18 @@ impl Node for GraphIn {
 pub struct GraphOut;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum GraphOutInId {
+pub enum GraphOutIn {
     Numeric,
 }
 
-impl InId for GraphOutInId {}
+impl InId for GraphOutIn {}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum GraphOutOutId {
+pub enum GraphOutOut {
     Numeric,
 }
 
-impl OutId for GraphOutOutId {}
+impl OutId for GraphOutOut {}
 
 impl GraphOut {
     pub fn new() -> Self {
@@ -357,9 +357,9 @@ impl Node for GraphOut {
     fn fold(&self, out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<Data> {
         dbg!(out_id);
 
-        if let Some(out_id) = out_id.as_any().downcast_ref::<GraphOutOutId>() {
+        if let Some(out_id) = out_id.as_any().downcast_ref::<GraphOutOut>() {
             match out_id {
-                GraphOutOutId::Numeric => lasy_fold.get_in(&GraphOutInId::Numeric, meta),
+                GraphOutOut::Numeric => lasy_fold.get_in(&GraphOutIn::Numeric, meta),
             }
         } else {
             Err(anyhow!("not a valid out_id"))
@@ -369,7 +369,7 @@ impl Node for GraphOut {
     fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
         in_id
             .as_any()
-            .downcast_ref::<GraphOutInId>()
+            .downcast_ref::<GraphOutIn>()
             .map(|in_id| NodeInId::new(node_id, in_id))
     }
 
