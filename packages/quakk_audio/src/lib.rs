@@ -32,11 +32,11 @@ impl Node for LFO {
         ))
     }
 
-    fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-        None
-    }
+    // fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
+    //     None
+    // }
 
-    fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        None
-    }
+    // fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
+    //     None
+    // }
 }

@@ -34,16 +34,16 @@ impl Node for NumericConstant {
         "Numeric Constant"
     }
 
-    fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-        None
-    }
+    // fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
+    //     None
+    // }
 
-    fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        out_id
-            .as_any()
-            .downcast_ref::<NumericConstantOut>()
-            .map(|out_id| NodeOutId::new(node_id, out_id))
-    }
+    // fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
+    //     out_id
+    //         .as_any()
+    //         .downcast_ref::<NumericConstantOut>()
+    //         .map(|out_id| NodeOutId::new(node_id, out_id))
+    // }
 
     fn fold(&self, _out_id: &dyn OutId, _lasy_fold: LasyFold, _meta: Meta) -> anyhow::Result<Data> {
         Ok(Data::new(self.value))
@@ -115,17 +115,17 @@ impl Node for Arithmetics {
         Ok(Data::new(res))
     }
 
-    fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-        in_id
-            .as_any()
-            .downcast_ref::<ArithmeticsIn>()
-            .map(|in_id| NodeInId::new(node_id, in_id))
-    }
+    // fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
+    //     in_id
+    //         .as_any()
+    //         .downcast_ref::<ArithmeticsIn>()
+    //         .map(|in_id| NodeInId::new(node_id, in_id))
+    // }
 
-    fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        out_id
-            .as_any()
-            .downcast_ref::<ArithmeticsOut>()
-            .map(|out_id| NodeOutId::new(node_id, out_id))
-    }
+    // fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
+    //     out_id
+    //         .as_any()
+    //         .downcast_ref::<ArithmeticsOut>()
+    //         .map(|out_id| NodeOutId::new(node_id, out_id))
+    // }
 }

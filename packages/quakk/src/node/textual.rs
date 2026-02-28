@@ -32,16 +32,16 @@ impl Node for TextConstant {
         "Text Constant"
     }
 
-    fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-        None
-    }
+    // fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
+    //     None
+    // }
 
-    fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        out_id
-            .as_any()
-            .downcast_ref::<TextConstantOut>()
-            .map(|out_id| NodeOutId::new(node_id, out_id))
-    }
+    // fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
+    //     out_id
+    //         .as_any()
+    //         .downcast_ref::<TextConstantOut>()
+    //         .map(|out_id| NodeOutId::new(node_id, out_id))
+    // }
 
     fn fold(&self, _out_id: &dyn OutId, _lasy_fold: LasyFold, _meta: Meta) -> anyhow::Result<Data> {
         Ok(Data::new(self.value.clone()))
@@ -79,19 +79,19 @@ impl Node for TextSplit {
         Self::default()
     }
 
-    fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-        in_id
-            .as_any()
-            .downcast_ref::<TextSplitIn>()
-            .map(|out_id| NodeInId::new(node_id, in_id))
-    }
+    // fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
+    //     in_id
+    //         .as_any()
+    //         .downcast_ref::<TextSplitIn>()
+    //         .map(|out_id| NodeInId::new(node_id, in_id))
+    // }
 
-    fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-        out_id
-            .as_any()
-            .downcast_ref::<TextSplitOut>()
-            .map(|out_id| NodeOutId::new(node_id, out_id))
-    }
+    // fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
+    //     out_id
+    //         .as_any()
+    //         .downcast_ref::<TextSplitOut>()
+    //         .map(|out_id| NodeOutId::new(node_id, out_id))
+    // }
 
     fn fold(&self, out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<Data> {
         let text = lasy_fold

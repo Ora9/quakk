@@ -23,8 +23,8 @@ pub trait Node: Debug {
 
     fn fold(&self, out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<Data>;
 
-    fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId>;
-    fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId>;
+    // fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId>;
+    // fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId>;
 
     // fn node_inout_id_for(&self, inout_name: &str, node_id: NodeId) -> Option<NodeInoutId> {
     //     self.id_for(inout_name)
