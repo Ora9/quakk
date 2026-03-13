@@ -1,0 +1,19 @@
+
+[package]
+name = "quakk_app"
+description.workspace = true
+repository.workspace = true
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+quakk.workspace = true
+
+egui = "0.33.3"
+eframe = "0.33.3"
+egui_tiles = "0.14.1"
+uuid = { version = "1.20.0", features = [ "v4" ] }

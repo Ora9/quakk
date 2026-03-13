@@ -46,6 +46,7 @@ impl NodeHandle {
         self.node.clone()
     }
 
+    /// Return a [`NodeInId`]
     pub fn node_in_id(&self, in_id: &dyn InId) -> NodeInId {
         NodeInId::new(self.id, in_id)
     }
