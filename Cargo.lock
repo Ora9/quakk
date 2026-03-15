@@ -2468,7 +2468,6 @@ dependencies = [
  "eframe",
  "egui",
  "egui_tiles",
- "quakk",
  "uuid",
 ]
 

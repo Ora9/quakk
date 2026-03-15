@@ -1,4 +1,3 @@
-
 [package]
 name = "quakk_app"
 description.workspace = true
@@ -11,7 +10,7 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-quakk.workspace = true
+# quakk.workspace = true
 
 egui = "0.33.3"
 eframe = "0.33.3"
