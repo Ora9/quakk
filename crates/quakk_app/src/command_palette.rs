@@ -18,16 +18,16 @@ impl Default for CommandPaletteState {
 }
 
 impl CommandPaletteState {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn load(ctx: &Context, id: Id) -> Option<Self> {
+        ctx.data_mut(|d| d.get_persisted(id))
     }
 
-    pub fn load(ctx: &Context, id: Id) -> Option<Self> {
-        ctx.data_mut(|d| d.get_persisted(Id::new(id)))
+    pub fn reset(ctx: &Context, id: Id) {
+        ctx.data_mut(|d| d.remove::<CommandPaletteState>(id))
     }
 
     pub fn store(self, ctx: &Context, id: Id) {
-        ctx.data_mut(|d| d.insert_persisted(Id::new(id), self))
+        ctx.data_mut(|d| d.insert_persisted(id, self))
     }
 }
 
@@ -36,16 +36,6 @@ pub struct CommandPalette;
 
 impl WidgetWithState for CommandPalette {
     type State = CommandPaletteState;
-}
-
-impl CommandPalette {
-    pub fn load_state(ctx: &Context, id: Id) -> Option<CommandPaletteState> {
-        CommandPaletteState::load(ctx, id)
-    }
-
-    pub fn store_state(ctx: &Context, id: Id, state: CommandPaletteState) {
-        state.store(ctx, id);
-    }
 }
 
 impl CommandPalette {
