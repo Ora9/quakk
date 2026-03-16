@@ -1,30 +1,31 @@
 # Quakk !
 
-Quakk is a node based live coding synthesizer
+Quakk is a node based live coding environment
 
-This project is currently under construction ! But might someday be a software i would use to make music, graphic visualisation and even light shows :)
+This project is currently under construction, but might someday be a software I would use to make music, graphic visualisation and even light shows, stay tune :)
 
 # Roadmap
 
-An informative roadmap to give an overview of what i'm planning to do along with a idea of when it is planned, and also what i already done !
+Following is an informative roadmap, giving an overview of what i'm planning to do and when
 
-## To Alpha
+## Road to a first release
 
-A first release of Quakk, a minimal but working software
+A minimal but working software :
 
-- [ ] A rust library to build node graphs
+- [ ] A rust library to build and compute node graphs
   - [x] Data flowing !
-  - [ ] A few nodes for for numeric and textual manipulation
-  - [ ] Good error management
+  - [ ] A few nodes for numeric and textual manipulation
+  - [ ] Error management
 - [ ] A simple CLI tool for experimentation
   - [ ] Input/Output
   - [ ] Files open/save as
 
 ## Future 
 
-In the future, a few goals given as direction for the project
+Some direction for the project :
 
-- [ ] Quakk rust lib published on crates.io with a stable API for embedded node based computation
-- [ ] A solid node library for easy and powerful numeric and textual manipulation
-- [ ] Other `quakk_*` crates for other data types like audio and video !
-- [ ] A software with a GUI to live code on, with a visual node workspace and ergonomic tools
+- [ ] A solid node collection
+  - [ ] Easy and powerful numeric and textual manipulation
+  - [ ] Other data types like audio and video !
+- [ ] A frontend to live code on, with a visual node workspace and ergonomic tools
+- [ ] `Quakk` rust library published on crates.io with a stable API for embedded node based computation
