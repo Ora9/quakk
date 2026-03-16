@@ -1,4 +1,7 @@
-use std::rc::Rc;
+use std::{
+    rc::Rc,
+    sync::{Arc, Mutex},
+};
 
 use egui::Align2;
 
@@ -11,11 +14,11 @@ pub struct View {
 
 #[derive(Debug)]
 pub struct TilingBehavior {
-    app_state: Rc<AppState>,
+    app_state: Arc<Mutex<AppState>>,
 }
 
 impl TilingBehavior {
-    fn new(app_state: Rc<AppState>) -> Self {
+    fn new(app_state: Arc<Mutex<AppState>>) -> Self {
         Self { app_state }
     }
 }
@@ -33,17 +36,25 @@ impl egui_tiles::Behavior<View> for TilingBehavior {
     ) -> egui_tiles::UiResponse {
         ui.label(pane.title.clone());
 
+        if let Ok(mut app_state) = self.app_state.lock() {
+            ui.checkbox(&mut app_state.inspect, "ouais");
+        } else {
+            ui.label("can't .. sry");
+        }
+
         Default::default()
     }
 }
 
 #[derive(Debug)]
 pub struct App {
+    pub start_time: std::time::Instant,
     pub egui_ctx: egui::Context,
-    pub app_state: Rc<AppState>,
+
+    pub app_state: Arc<Mutex<AppState>>,
+
     pub tiling_behavior: TilingBehavior,
     pub tiling_tree: egui_tiles::Tree<View>,
-    pub start_time: std::time::Instant,
 }
 
 impl App {
@@ -80,7 +91,7 @@ impl App {
     }
 
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        let app_state = Rc::new(AppState::default());
+        let app_state = Arc::new(Mutex::new(AppState::default()));
 
         Self {
             egui_ctx: cc.egui_ctx.clone(),
