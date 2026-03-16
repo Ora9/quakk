@@ -8,7 +8,7 @@ pub trait Command {
         None
     }
 
-    fn action(&self, app_state: Arc<Mutex<AppState>>);
+    fn action(&self, app_state: &mut Arc<Mutex<AppState>>);
 }
 
 pub struct Termout {
@@ -20,7 +20,7 @@ impl Command for Termout {
         "Termout"
     }
 
-    fn action(&self, app_state: Arc<Mutex<AppState>>) {
+    fn action(&self, app_state: &mut Arc<Mutex<AppState>>) {
         dbg!(&self.string);
         dbg!(app_state.lock());
     }

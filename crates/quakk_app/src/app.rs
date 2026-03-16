@@ -20,6 +20,8 @@ pub struct App {
 
 impl eframe::App for App {
     fn update(&mut self, egui_ctx: &egui::Context, frame: &mut eframe::Frame) {
+        self.handle_input(egui_ctx);
+
         self.ui(egui_ctx);
     }
 }
@@ -72,7 +74,7 @@ impl App {
     }
 
     fn handle_command(&mut self, command: impl Command) {
-        command.action(self.app_state.clone());
+        command.action(&mut self.app_state.clone());
     }
 
     fn handle_input(&mut self, egui_ctx: &Context) {
@@ -88,7 +90,9 @@ impl App {
 
         let events = egui_ctx.input(|i| i.events.to_owned());
 
-        for event in events {}
+        for event in events {
+            dbg!(event);
+        }
     }
 
     pub fn ui(&mut self, egui_ctx: &egui::Context) {
@@ -97,13 +101,14 @@ impl App {
 
             if let Ok(app_state) = self.app_state.lock() {
                 // ui.add(app_state.command_palette);
+                CommandPalette::new(vec!["termout".to_string(), "about".to_string()]).ui(ui);
             } else {
                 panic!("aah can't lock the state")
             }
 
-            self.handle_command(Termout {
-                string: "Prout".to_string(),
-            });
+            // self.handle_command(Termout {
+            //     string: "Hello".to_string(),
+            // });
         });
     }
 }
@@ -139,10 +144,6 @@ impl egui_tiles::Behavior<View> for TilingBehavior {
 
         if let Ok(mut app_state) = self.app_state.lock() {
             ui.checkbox(&mut app_state.inspect, "ouais");
-
-            if app_state.inspect {
-                CommandPalette::new().ui(ui);
-            }
         } else {
             ui.label("can't .. sry");
         }
