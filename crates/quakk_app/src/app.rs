@@ -5,7 +5,7 @@ use std::{
 
 use egui::{Align2, Context, Widget};
 
-use crate::{AppState, CommandPalette};
+use crate::{AppState, Command, CommandPalette, command::Termout};
 
 #[derive(Debug)]
 pub struct App {
@@ -71,6 +71,10 @@ impl App {
         )
     }
 
+    fn handle_command(&mut self, command: impl Command) {
+        command.action(self.app_state.clone());
+    }
+
     fn handle_input(&mut self, egui_ctx: &Context) {
         // make a per view setting to catch or not nav-keys
         // let event_filter = egui::EventFilter {
@@ -96,6 +100,10 @@ impl App {
             } else {
                 panic!("aah can't lock the state")
             }
+
+            self.handle_command(Termout {
+                string: "Prout".to_string(),
+            });
         });
     }
 }
