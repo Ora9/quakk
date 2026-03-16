@@ -5,7 +5,7 @@ use std::{
 
 use egui::{Align2, Context, Widget};
 
-use crate::{AppState, Command, CommandPalette, command::Termout};
+use crate::{AppState, Command, Menu, command::Termout};
 
 #[derive(Debug)]
 pub struct App {
@@ -101,7 +101,12 @@ impl App {
 
             if let Ok(app_state) = self.app_state.lock() {
                 // ui.add(app_state.command_palette);
-                CommandPalette::new(vec!["termout".to_string(), "about".to_string()]).ui(ui);
+                Menu::new(vec![
+                    "termout".to_string().into(),
+                    "about".to_string().into(),
+                    "yes".to_string().into(),
+                ])
+                .ui(ui);
             } else {
                 panic!("aah can't lock the state")
             }

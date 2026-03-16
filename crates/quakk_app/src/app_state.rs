@@ -1,4 +1,4 @@
-use crate::CommandPalette;
+use crate::Menu;
 
 #[derive(Debug)]
 pub struct AppState {
