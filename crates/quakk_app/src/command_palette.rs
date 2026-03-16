@@ -58,8 +58,6 @@ impl egui::Widget for CommandPalette {
         )
         .show(|ui| {
             let mut state = CommandPaletteState::load(ui.ctx(), id).unwrap_or_default();
-
-            dbg!(&state);
             ui.text_edit_singleline(&mut state.text_input);
 
             state.store(ui.ctx(), id);
