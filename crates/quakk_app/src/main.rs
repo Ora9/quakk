@@ -9,8 +9,8 @@ pub use app_state::AppState;
 mod command;
 pub use command::Command;
 
-mod menu;
-pub use menu::Menu;
+mod components;
+pub use components::menu::{Menu, MenuAnchor, MenuEntry};
 
 fn main() {
     let native_options = eframe::NativeOptions::default();
