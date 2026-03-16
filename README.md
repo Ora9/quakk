@@ -1,4 +1,4 @@
-# Quakk !
+# Quakk ! 🌱🦆✨
 
 Quakk is a node based live coding environment
 
