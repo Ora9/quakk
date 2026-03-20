@@ -84,25 +84,25 @@ pub struct Modifiers {
 }
 
 impl Modifiers {
-    const NONE: Self = Self {
+    pub const NONE: Self = Self {
         ctrl: false,
         alt: false,
         shift: false,
     };
 
-    const CTRL: Self = Self {
+    pub const CTRL: Self = Self {
         ctrl: true,
         alt: false,
         shift: false,
     };
 
-    const ALT: Self = Self {
+    pub const ALT: Self = Self {
         ctrl: false,
         alt: true,
         shift: false,
     };
 
-    const SHIFT: Self = Self {
+    pub const SHIFT: Self = Self {
         ctrl: false,
         alt: false,
         shift: true,
@@ -119,7 +119,7 @@ impl Modifiers {
 
     /// Add two modifiers states (OR operation)
     /// ```
-    /// # use crate::Modifiers;
+    /// # use quakk_app::Modifiers;
     ///
     /// assert_eq!(
     ///     Modifiers::ALT | Modifiers::CTRL,
@@ -156,7 +156,7 @@ impl Modifiers {
     /// - `ctrl-alt-shift`
     ///
     /// ```
-    /// # use crate::Modifiers;
+    /// # use quakk_app::Modifiers;
     ///
     /// assert_eq!(Modifiers::NONE.format(), "");
     /// ```
