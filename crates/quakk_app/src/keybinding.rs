@@ -54,11 +54,20 @@ pub struct Keybind {
     sequence: Vec<Keypress>,
 }
 
+/// The state of the modifiers keys (ctrl, alt and shift) during a keypress
+///
+/// Shortcomings :
+/// - MacOS is currently not handled (command and option)
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Modifiers {
-    ctrl: bool,
-    alt: bool,
-    shift: bool,
+    /// Either of the ctrl ("Control") keys are down
+    pub ctrl: bool,
+
+    /// Either the alt keys are down
+    pub alt: bool,
+
+    /// Either of the shift keys are down
+    pub shift: bool,
 }
 
 impl Modifiers {
@@ -86,6 +95,7 @@ impl Modifiers {
         shift: true,
     };
 
+    /// Get `Modifiers` from [egui modifiers](https://docs.rs/egui/latest/egui/struct.Modifiers.html)
     pub fn from_egui_modifiers(egui_modifiers: egui::Modifiers) -> Self {
         Self {
             ctrl: egui_modifiers.ctrl,
@@ -94,7 +104,15 @@ impl Modifiers {
         }
     }
 
-    pub fn or(&self, rhs: Self) -> Self {
+    /// Add two modifiers states (OR operation)
+    /// ```
+    /// # use crate::Modifiers;
+    ///
+    /// assert_eq!(
+    ///     Modifiers::ALT | Modifiers::CTRL,
+    ///     Modifiers { ctrl: true, alt: true, shift: false }
+    /// );
+    pub fn add(&self, rhs: Self) -> Self {
         Self {
             ctrl: self.ctrl | rhs.ctrl,
             alt: self.alt | rhs.alt,
@@ -102,6 +120,7 @@ impl Modifiers {
         }
     }
 
+    /// Are none of the modifiers keys pressed?
     pub fn is_none(&self) -> bool {
         self == &Self::NONE
     }
@@ -127,6 +146,20 @@ impl Modifiers {
         append_if(self.shift, "shift");
 
         s
+    }
+}
+
+impl std::ops::BitOr for Modifiers {
+    type Output = Self;
+
+    fn bitor(self, rhs: Self) -> Self {
+        self.add(rhs)
+    }
+}
+
+impl std::ops::BitOrAssign for Modifiers {
+    fn bitor_assign(&mut self, rhs: Self) {
+        *self = *self | rhs;
     }
 }
 
