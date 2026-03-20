@@ -1,5 +1,6 @@
 use std::fmt::{Debug, Display};
 
+/// The state of a keypress, one [Key] and zero or more [Modifiers]
 #[derive(Debug)]
 pub struct Keypress {
     modifiers: Modifiers,
@@ -7,6 +8,7 @@ pub struct Keypress {
 }
 
 impl Keypress {
+    /// Get a `Keypress` from an [egui event](https://docs.rs/egui/latest/egui/struct.Event.html)
     pub fn from_egui_event(event: egui::Event) -> Option<Self> {
         if let egui::Event::Key {
             key: egui_key,
@@ -29,6 +31,17 @@ impl Keypress {
         }
     }
 
+    /// Format a keypress, by concatenating the default format of [`Modifiers`](Modifiers::format)
+    /// and [`Key`](Key::format)
+    /// - in all lowercase
+    /// - all element separated by `-` (dash)
+    /// - modifiers if any (in order: `ctrl`, `alt` then `shift`) followed by key
+    ///
+    /// # Example
+    /// - `a`
+    /// - `ctrl-shift`
+    /// - `alt-shift`
+    /// - `ctrl-alt-shift`
     pub fn format(&self) -> String {
         let mut s = String::new();
 
@@ -54,7 +67,7 @@ pub struct Keybind {
     sequence: Vec<Keypress>,
 }
 
-/// The state of the modifiers keys (ctrl, alt and shift) during a keypress
+/// The state of the modifiers keys (ctrl, alt and shift) during a [`Keypress`]
 ///
 /// Shortcomings :
 /// - MacOS is currently not handled (command and option)
@@ -95,7 +108,7 @@ impl Modifiers {
         shift: true,
     };
 
-    /// Get `Modifiers` from [egui modifiers](https://docs.rs/egui/latest/egui/struct.Modifiers.html)
+    /// Get a `Modifiers` from an [egui modifiers](https://docs.rs/egui/latest/egui/struct.Modifiers.html)
     pub fn from_egui_modifiers(egui_modifiers: egui::Modifiers) -> Self {
         Self {
             ctrl: egui_modifiers.ctrl,
@@ -136,10 +149,17 @@ impl Modifiers {
     /// - with `-` (dash) separator
     ///
     /// # Example
+    /// - ``
     /// - `ctrl`
     /// - `ctrl-shift`
     /// - `alt-shift`
     /// - `ctrl-alt-shift`
+    ///
+    /// ```
+    /// # use crate::Modifiers;
+    ///
+    /// assert_eq!(Modifiers::NONE.format(), "");
+    /// ```
     pub fn format(&self) -> String {
         let mut s = String::new();
 
