@@ -94,8 +94,20 @@ impl Modifiers {
         }
     }
 
+    pub fn or(&self, rhs: Self) -> Self {
+        Self {
+            ctrl: self.ctrl | rhs.ctrl,
+            alt: self.alt | rhs.alt,
+            shift: self.shift | rhs.shift,
+        }
+    }
+
     pub fn is_none(&self) -> bool {
         self == &Self::NONE
+    }
+
+    pub fn any(&self) -> bool {
+        !self.is_none()
     }
 
     pub fn format(&self) -> String {
