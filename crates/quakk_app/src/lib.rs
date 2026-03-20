@@ -8,7 +8,7 @@ mod command;
 pub use command::Command;
 
 mod keybinding;
-pub use keybinding::{Keybind, Modifiers};
+pub use keybinding::{Key, Keybind, Keypress, Modifiers};
 
 mod components;
 pub use components::menu::{Menu, MenuAnchor, MenuEntry};

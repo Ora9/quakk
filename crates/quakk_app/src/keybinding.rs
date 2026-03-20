@@ -1,10 +1,10 @@
 use std::fmt::{Debug, Display};
 
 /// The state of a keypress, one [Key] and zero or more [Modifiers]
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Keypress {
-    modifiers: Modifiers,
-    key: Key,
+    pub modifiers: Modifiers,
+    pub key: Key,
 }
 
 impl Keypress {
@@ -35,13 +35,34 @@ impl Keypress {
     /// and [`Key`](Key::format)
     /// - in all lowercase
     /// - all element separated by `-` (dash)
-    /// - modifiers if any (in order: `ctrl`, `alt` then `shift`) followed by key
+    /// - in order :
+    ///     - modifiers if any : `ctrl`, `alt` then `shift`
+    ///     - key
     ///
     /// # Example
-    /// - `a`
-    /// - `ctrl-shift`
-    /// - `alt-shift`
-    /// - `ctrl-alt-shift`
+    /// - `"a"`
+    /// - `"alt-j"`
+    /// - `"ctrl-shift-b"`
+    /// - `"shift-tab"`
+    /// - `"alt-shift-pagedown"`
+    ///
+    /// ```
+    /// # use quakk_app::{Keypress, Key, Modifiers};
+    /// assert_eq!(Keypress {
+    ///     key: Key::A,
+    ///     modifiers: Modifiers::NONE,
+    /// }.format(), "a");
+    ///
+    /// assert_eq!(Keypress {
+    ///     key: Key::B,
+    ///     modifiers: Modifiers { ctrl: true, shift: true, ..Default::default() },
+    /// }.format(), "ctrl-shift-b");
+    ///
+    /// assert_eq!(Keypress {
+    ///     key: Key::PageDown,
+    ///     modifiers: Modifiers::ALT,
+    /// }.format(), "alt-pagedown");
+    /// ```
     pub fn format(&self) -> String {
         let mut s = String::new();
 
@@ -71,7 +92,7 @@ pub struct Keybind {
 ///
 /// Shortcomings :
 /// - MacOS is currently not handled (command and option)
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Default, Clone, Copy, PartialEq, Eq)]
 pub struct Modifiers {
     /// Either of the ctrl ("Control") keys are down
     pub ctrl: bool,
@@ -84,10 +105,19 @@ pub struct Modifiers {
 }
 
 impl Modifiers {
+    /// ```
+    /// # use quakk_app::Modifiers;
+    /// assert_eq!(Modifiers::NONE, Modifiers::default());
     pub const NONE: Self = Self {
         ctrl: false,
         alt: false,
         shift: false,
+    };
+
+    pub const ALL: Self = Self {
+        ctrl: true,
+        alt: true,
+        shift: true,
     };
 
     pub const CTRL: Self = Self {
@@ -120,10 +150,19 @@ impl Modifiers {
     /// Add two modifiers states (OR operation)
     /// ```
     /// # use quakk_app::Modifiers;
+    /// assert_eq!(
+    ///     Modifiers::ALT.add(Modifiers::CTRL),
+    ///     Modifiers { ctrl: true, alt: true, shift: false }
+    /// );
     ///
     /// assert_eq!(
-    ///     Modifiers::ALT | Modifiers::CTRL,
-    ///     Modifiers { ctrl: true, alt: true, shift: false }
+    ///     Modifiers::SHIFT | Modifiers::CTRL,
+    ///     Modifiers::CTRL | Modifiers::SHIFT
+    /// );
+    ///
+    /// assert_eq!(
+    ///     Modifiers::CTRL | Modifiers::SHIFT,
+    ///     Modifiers::CTRL.add(Modifiers::SHIFT)
     /// );
     pub fn add(&self, rhs: Self) -> Self {
         Self {
@@ -134,12 +173,24 @@ impl Modifiers {
     }
 
     /// Are none of the modifiers keys pressed ?
+    /// ```
+    /// # use quakk_app::Modifiers;
+    /// assert!( Modifiers::NONE.is_none());
+    /// assert!(!Modifiers::CTRL.is_none());
+    /// assert!(!Modifiers::ALL.is_none());
+    /// ```
     pub fn is_none(&self) -> bool {
         self == &Self::NONE
     }
 
     /// Is any of the modifiers key pressed ?
-    pub fn any(&self) -> bool {
+    /// ```
+    /// # use quakk_app::Modifiers;
+    /// assert!(!Modifiers::NONE.is_any());
+    /// assert!( Modifiers::ALL.is_any());
+    /// assert!( Modifiers::CTRL.is_any());
+    /// ```
+    pub fn is_any(&self) -> bool {
         !self.is_none()
     }
 
@@ -149,16 +200,19 @@ impl Modifiers {
     /// - with `-` (dash) separator
     ///
     /// # Example
-    /// - ``
-    /// - `ctrl`
-    /// - `ctrl-shift`
-    /// - `alt-shift`
-    /// - `ctrl-alt-shift`
+    /// - `""`
+    /// - `"ctrl"`
+    /// - `"ctrl-shift"`
+    /// - `"alt-shift"`
+    /// - `"ctrl-alt-shift"`
     ///
     /// ```
     /// # use quakk_app::Modifiers;
-    ///
     /// assert_eq!(Modifiers::NONE.format(), "");
+    /// assert_eq!(Modifiers::CTRL.format(), "ctrl");
+    /// assert_eq!(Modifiers::ALL.format(), "ctrl-alt-shift");
+    /// assert_eq!(Modifiers {ctrl: false, alt: true, shift: true}.format(), "alt-shift");
+    /// assert_eq!(Modifiers {ctrl: true, alt: false, shift: true}.format(), "ctrl-shift");
     /// ```
     pub fn format(&self) -> String {
         let mut s = String::new();
@@ -214,7 +268,8 @@ impl Debug for Modifiers {
     }
 }
 
-#[derive(Debug, strum::EnumString, strum::Display)]
+/// Keyboard keys, used in [Keypress] and [Keybind]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, strum::EnumString, strum::Display)]
 #[strum(serialize_all = "lowercase")]
 pub enum Key {
     // Commands
@@ -244,8 +299,8 @@ pub enum Key {
     Backslash,
     Slash,
     Pipe,
-    Questionmark,
-    Exclamationmark,
+    QuestionMark,
+    ExclamationMark,
     OpenBracket,
     CloseBracket,
     OpenCurlyBracket,
@@ -375,8 +430,8 @@ impl Key {
             egui::Key::Backslash => Some(Key::Backslash),
             egui::Key::Slash => Some(Key::Slash),
             egui::Key::Pipe => Some(Key::Pipe),
-            egui::Key::Questionmark => Some(Key::Questionmark),
-            egui::Key::Exclamationmark => Some(Key::Exclamationmark),
+            egui::Key::Questionmark => Some(Key::QuestionMark),
+            egui::Key::Exclamationmark => Some(Key::ExclamationMark),
             egui::Key::OpenBracket => Some(Key::OpenBracket),
             egui::Key::CloseBracket => Some(Key::CloseBracket),
             egui::Key::OpenCurlyBracket => Some(Key::OpenCurlyBracket),
@@ -469,6 +524,26 @@ impl Key {
         }
     }
 
+    /// Format a Key
+    /// - textual representation of a key
+    /// - in all lowercase
+    ///
+    /// # Example
+    /// - `"a"`
+    /// - `"1"`
+    /// - `"tab"`
+    /// - `"pipe"`
+    /// - `"pageup"`
+    /// - `"f1"`
+    ///
+    /// ```
+    /// # use quakk_app::Key;
+    /// assert_eq!(Key::A.format(), "a");
+    /// assert_eq!(Key::Num1.format(), "1");
+    /// assert_eq!(Key::Tab.format(), "tab");
+    /// assert_eq!(Key::PageUp.format(), "pageup");
+    /// assert_eq!(Key::F1.format(), "f1");
+    /// ```
     pub fn format(&self) -> String {
         self.to_string()
     }
