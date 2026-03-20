@@ -24,6 +24,10 @@ impl eframe::App for App {
 
         self.ui(egui_ctx);
     }
+
+    // fn raw_input_hook(&mut self, _ctx: &egui::Context, raw_input: &mut egui::RawInput) {
+    //     dbg!(&raw_input.events);
+    // }
 }
 
 impl App {
@@ -93,8 +97,10 @@ impl App {
         // egui_ctx.input(|i| dbg!(i.keys_down.clone(), i.modifiers.clone()));
 
         for event in events {
-            if let Some(keybind) = Keypress::from_egui_event(event) {
-                dbg!(keybind);
+            if let Some(keypress) = Keypress::from_egui_event(event) {
+                // dbg!(keypress);
+
+                println!("{}", keypress);
             }
         }
     }

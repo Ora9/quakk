@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 #[derive(Debug)]
 pub struct Keypress {
     modifiers: Modifiers,
@@ -9,7 +11,7 @@ impl Keypress {
         if let egui::Event::Key {
             key: egui_key,
             modifiers: egui_modifiers,
-            pressed: false,
+            pressed: true,
             repeat,
             ..
         } = event
@@ -26,6 +28,25 @@ impl Keypress {
             None
         }
     }
+
+    pub fn format(&self) -> String {
+        let mut s = String::new();
+
+        if !self.modifiers.is_none() {
+            s += &self.modifiers.format();
+            s += "-";
+        }
+
+        s += &self.key.format();
+
+        s
+    }
+}
+
+impl Display for Keypress {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.format())
+    }
 }
 
 #[derive(Debug)]
@@ -33,7 +54,7 @@ pub struct Keybind {
     sequence: Vec<Keypress>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Modifiers {
     ctrl: bool,
     alt: bool,
@@ -71,6 +92,29 @@ impl Modifiers {
             alt: egui_modifiers.alt,
             shift: egui_modifiers.shift,
         }
+    }
+
+    pub fn is_none(&self) -> bool {
+        self == &Self::NONE
+    }
+
+    pub fn format(&self) -> String {
+        let mut s = String::new();
+
+        let mut append_if = |is_active, name| {
+            if is_active {
+                if !s.is_empty() {
+                    s += "-";
+                }
+                s += name;
+            }
+        };
+
+        append_if(self.ctrl, "ctrl");
+        append_if(self.alt, "alt");
+        append_if(self.shift, "shift");
+
+        s
     }
 }
 
@@ -327,5 +371,9 @@ impl Key {
             egui::Key::F35 => Some(Key::F35),
             _ => None,
         }
+    }
+
+    pub fn format(&self) -> String {
+        self.to_string()
     }
 }
