@@ -24,10 +24,6 @@ impl eframe::App for App {
 
         self.ui(egui_ctx);
     }
-
-    // fn raw_input_hook(&mut self, _ctx: &egui::Context, raw_input: &mut egui::RawInput) {
-    //     dbg!(&raw_input.events);
-    // }
 }
 
 impl App {
