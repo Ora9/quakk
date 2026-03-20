@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 
 #[derive(Debug)]
 pub struct Keypress {
@@ -54,7 +54,7 @@ pub struct Keybind {
     sequence: Vec<Keypress>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Modifiers {
     ctrl: bool,
     alt: bool,
@@ -115,6 +115,26 @@ impl Modifiers {
         append_if(self.shift, "shift");
 
         s
+    }
+}
+
+impl Debug for Modifiers {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.is_none() {
+            return write!(f, "Modifiers::NONE");
+        }
+
+        let mut debug = f.debug_struct("Modifiers");
+        if self.ctrl {
+            debug.field("ctrl", &true);
+        }
+        if self.alt {
+            debug.field("alt", &true);
+        }
+        if self.shift {
+            debug.field("shift", &true);
+        }
+        debug.finish()
     }
 }
 
