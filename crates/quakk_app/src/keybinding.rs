@@ -120,15 +120,26 @@ impl Modifiers {
         }
     }
 
-    /// Are none of the modifiers keys pressed?
+    /// Are none of the modifiers keys pressed ?
     pub fn is_none(&self) -> bool {
         self == &Self::NONE
     }
 
+    /// Is any of the modifiers key pressed ?
     pub fn any(&self) -> bool {
         !self.is_none()
     }
 
+    /// Format modifiers state with all pressed modifiers
+    /// - in order : `ctrl`, `alt`, `shift`
+    /// - in all lowercase
+    /// - with `-` (dash) separator
+    ///
+    /// # Example
+    /// - `ctrl`
+    /// - `ctrl-shift`
+    /// - `alt-shift`
+    /// - `ctrl-alt-shift`
     pub fn format(&self) -> String {
         let mut s = String::new();
 
