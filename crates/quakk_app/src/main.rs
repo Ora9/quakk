@@ -9,6 +9,9 @@ pub use app_state::AppState;
 mod command;
 pub use command::Command;
 
+mod keybinding;
+pub use keybinding::{Keybind, Modifiers};
+
 mod components;
 pub use components::menu::{Menu, MenuAnchor, MenuEntry};
 

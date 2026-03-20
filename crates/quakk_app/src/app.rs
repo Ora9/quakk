@@ -5,7 +5,7 @@ use std::{
 
 use egui::{Align2, Context, Widget};
 
-use crate::{AppState, Command, Menu, command::Termout};
+use crate::{AppState, Command, Keybind, Menu, command::Termout, keybinding::Keypress};
 
 #[derive(Debug)]
 pub struct App {
@@ -90,8 +90,12 @@ impl App {
 
         let events = egui_ctx.input(|i| i.events.to_owned());
 
+        // egui_ctx.input(|i| dbg!(i.keys_down.clone(), i.modifiers.clone()));
+
         for event in events {
-            dbg!(event);
+            if let Some(keybind) = Keypress::from_egui_event(event) {
+                dbg!(keybind);
+            }
         }
     }
 

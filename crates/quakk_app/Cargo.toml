@@ -16,3 +16,4 @@ egui = "0.33.3"
 eframe = "0.33.3"
 egui_tiles = "0.14.1"
 uuid = { version = "1.20.0", features = [ "v4" ] }
+strum = { version = "0.28.0", features = ["derive"] }
