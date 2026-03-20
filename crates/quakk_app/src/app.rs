@@ -96,7 +96,7 @@ impl App {
             if let Some(keypress) = Keypress::from_egui_event(event) {
                 // dbg!(keypress);
 
-                println!("{}", keypress);
+                println!("{}", keypress.format());
             }
         }
     }
