@@ -2468,6 +2468,7 @@ dependencies = [
  "eframe",
  "egui",
  "egui_tiles",
+ "smallvec",
  "strum",
  "uuid",
 ]

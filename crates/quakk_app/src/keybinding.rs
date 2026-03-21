@@ -1,5 +1,81 @@
 use std::fmt::{Debug, Display};
 
+use smallvec::{SmallVec, smallvec};
+
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
+pub struct KeypressRecording {
+    sequence: [Option<Keypress>; 2],
+    reversed: bool,
+}
+
+impl KeypressRecording {
+    /// Get a new empty sequence
+    /// ```
+    /// # use quakk_app::KeypressSequence;
+    /// assert_eq!(KeypressSequence::new_empty(), KeypressSequence::default())
+    /// ```
+    pub fn new_empty() -> Self {
+        Self::default()
+    }
+
+    pub fn append(&mut self, keypress: Keypress) {
+        let index = if self.reversed { 1 } else { 0 };
+        self.sequence[index] = Some(keypress);
+        self.reversed = !self.reversed;
+    }
+
+    pub fn get(&self) -> [Option<Keypress>; 2] {
+        if self.reversed {
+            [self.sequence[0], self.sequence[1]]
+        } else {
+            [self.sequence[1], self.sequence[0]]
+        }
+    }
+
+    // pub fn get_slice(&self) -> [Keypress] {
+    //     let seq = self.get();
+    //     seq.iter()
+    //         .fold(0, |acc, elem| if elem.is_some() { x + 1 } else { bre })
+
+    // }
+
+    // pub fn get_keybind(&self) -> Keybind {
+    // self.sequence
+    // }
+}
+
+/// A keybinding, meaning keypress or a sequence of keypresses
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
+pub struct Keybind {
+    keypresses: SmallVec<[Keypress; 2]>,
+}
+
+impl Keybind {
+    pub fn from_keypress(keypress: Keypress) -> Self {
+        Self {
+            keypresses: smallvec![keypress],
+        }
+    }
+
+    // pub fn from_two_keypresses(first: Keypress, second: Keypress) -> Self {
+    //     Self {
+    //         keypresses: smallvec![first, second],
+    //     }
+    // }
+
+    pub fn new(keypresses: [Keypress; 2]) -> Self {
+        Self {
+            keypresses: keypresses.into(),
+        }
+    }
+
+    pub fn format(&self) -> String {
+        dbg!(self);
+
+        String::new()
+    }
+}
+
 /// The state of a keypress, one [Key] and zero or more [Modifiers]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Keypress {
@@ -81,11 +157,6 @@ impl Display for Keypress {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.format())
     }
-}
-
-#[derive(Debug)]
-pub struct Keybind {
-    sequence: Vec<Keypress>,
 }
 
 /// The state of the modifiers keys (ctrl, alt and shift) during a [`Keypress`]

@@ -5,7 +5,11 @@ use std::{
 
 use egui::{Align2, Context, Widget};
 
-use crate::{AppState, Command, Keybind, Menu, command::Termout, keybinding::Keypress};
+use crate::{
+    AppState, Command, Keybind, Menu,
+    command::Termout,
+    keybinding::{Keypress, KeypressRecording},
+};
 
 #[derive(Debug)]
 pub struct App {
@@ -16,6 +20,8 @@ pub struct App {
 
     pub tiling_behavior: TilingBehavior,
     pub tiling_tree: egui_tiles::Tree<View>,
+
+    pub keypress_recording: KeypressRecording,
 }
 
 impl eframe::App for App {
@@ -40,6 +46,8 @@ impl App {
 
             app_state: app_state,
             start_time: std::time::Instant::now(),
+
+            keypress_recording: KeypressRecording::new_empty(),
         }
     }
 
@@ -96,7 +104,11 @@ impl App {
             if let Some(keypress) = Keypress::from_egui_event(event) {
                 // dbg!(keypress);
 
-                println!("{}", keypress.format());
+                // println!("{}", keypress.format());
+
+                dbg!(Keybind::from_keypress(keypress));
+                self.keypress_recording.append(keypress);
+                dbg!(&self.keypress_recording.get());
             }
         }
     }
