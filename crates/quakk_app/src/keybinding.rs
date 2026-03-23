@@ -102,11 +102,7 @@ impl Keypress {
             let key = Key::from_egui_key(egui_key);
             let modifiers = Modifiers::from_egui_modifiers(egui_modifiers);
 
-            if let Some(key) = key {
-                Some(Self { key, modifiers })
-            } else {
-                None
-            }
+            key.map(|key| Self { key, modifiers })
         } else {
             None
         }
