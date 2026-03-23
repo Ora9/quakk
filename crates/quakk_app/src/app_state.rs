@@ -1,6 +1,6 @@
 use crate::Menu;
 
-#[derive(Debug)]
+#[derive(Default, Debug)]
 pub struct AppState {
     pub inspect: bool,
     pub command_panel_opened: bool,
