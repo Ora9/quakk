@@ -5,11 +5,7 @@ use std::{
 
 use egui::{Align2, Context, Widget};
 
-use crate::{
-    AppState, Command, Keybind, Menu,
-    command::Termout,
-    keybinding::{Keypress, KeypressRecording},
-};
+use crate::{AppState, Command, Keybind, Menu, keybinding::Keypress};
 
 #[derive(Debug)]
 pub struct App {
@@ -21,7 +17,7 @@ pub struct App {
     pub tiling_behavior: TilingBehavior,
     pub tiling_tree: egui_tiles::Tree<View>,
 
-    pub keypress_recording: KeypressRecording,
+    pub partial_keybinding: Option<Keypress>,
 }
 
 impl eframe::App for App {
@@ -47,7 +43,7 @@ impl App {
             app_state: app_state,
             start_time: std::time::Instant::now(),
 
-            keypress_recording: KeypressRecording::new_empty(),
+            partial_keybinding: None,
         }
     }
 
@@ -101,14 +97,13 @@ impl App {
         // egui_ctx.input(|i| dbg!(i.keys_down.clone(), i.modifiers.clone()));
 
         for event in events {
+            dbg!(&event.clone());
             if let Some(keypress) = Keypress::from_egui_event(event) {
-                // dbg!(keypress);
+                if let Some(partial) = self.partial_keybinding {
+                    println!("{}", Keybind::from_pair(partial, keypress).format());
+                }
 
-                // println!("{}", keypress.format());
-
-                dbg!(Keybind::from_keypress(keypress));
-                self.keypress_recording.append(keypress);
-                dbg!(&self.keypress_recording.get());
+                self.partial_keybinding = Some(keypress);
             }
         }
     }
