@@ -40,7 +40,7 @@ impl App {
             tiling_behavior: TilingBehavior::new(app_state.clone()),
             tiling_tree: Self::initialize_tiling_tree(),
 
-            app_state: app_state,
+            app_state,
             start_time: std::time::Instant::now(),
 
             partial_keybinding: None,
@@ -56,7 +56,6 @@ impl App {
         let output = tiles.insert_pane(View {
             title: "Output".to_string(),
         });
-
         let horizontal = tiles.insert_container({
             let mut linear = egui_tiles::Linear {
                 children: vec![graph, output],
