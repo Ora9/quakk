@@ -1,20 +1,23 @@
 [package]
-name = "quakk_app"
+name = "quakk_app_gpui"
 description.workspace = true
 repository.workspace = true
+license.workspace = true
 version.workspace = true
 edition.workspace = true
-license.workspace = true
+
+[dependencies]
+# gpui = "0.2.2"
+# gpui-component = "0.5.1"
+# gpui-component-assets = "0.5.1"
+
+gpui = { git = "https://github.com/zed-industries/zed" }
+gpui_platform = { git = "https://github.com/zed-industries/zed", features = ["font-kit", "x11", "wayland", "runtime_shaders"] }
+# gpui_web = { git = "https://github.com/zed-industries/zed" }
+# gpui_macros = { git = "https://github.com/zed-industries/zed" }
+
+gpui-component = { git = "https://github.com/longbridge/gpui-component" }
+gpui-component-assets = { git = "https://github.com/longbridge/gpui-component" }
 
 [lints]
 workspace = true
-
-[dependencies]
-# quakk.workspace = true
-
-egui = "0.33.3"
-eframe = "0.33.3"
-egui_tiles = "0.14.1"
-uuid = { version = "1.20.0", features = [ "v4" ] }
-strum = { version = "0.28.0", features = ["derive"] }
-smallvec = "1.15.1"
