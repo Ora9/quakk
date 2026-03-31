@@ -1,5 +1,5 @@
 use gpui::{Window, div, prelude::*};
-use gpui_component::{IconName, Root, Sizable, TitleBar, button::Button};
+use gpui_component::{IconName, Root, TitleBar, button::Button};
 
 use crate::GraphView;
 

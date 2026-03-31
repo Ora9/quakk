@@ -1,5 +1,5 @@
 [package]
-name = "quakk_app_gpui"
+name = "quakk_app"
 description.workspace = true
 repository.workspace = true
 license.workspace = true

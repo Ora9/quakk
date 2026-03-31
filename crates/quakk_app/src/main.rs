@@ -1,9 +1,7 @@
-use gpui::{App, Context, SharedString, TitlebarOptions, Window, WindowOptions, div, prelude::*};
-use gpui_component::menu::{ContextMenuExt, PopupMenuItem};
-use gpui_component::{IconName, TitleBar};
-use gpui_component::{Root, button::Button};
+use gpui::{App, AppContext, TitlebarOptions, WindowOptions};
+use gpui_component::Root;
 use gpui_component_assets::Assets;
-
+use quakk_app::QuakkApp;
 
 fn main() {
     let application = gpui_platform::application().with_assets(Assets);
