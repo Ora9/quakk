@@ -1,7 +1,7 @@
 use gpui::prelude::*;
 use gpui::{Window, div};
 
-struct PaletteMenu {
+pub struct PaletteMenu {
     selected: usize,
 }
 
