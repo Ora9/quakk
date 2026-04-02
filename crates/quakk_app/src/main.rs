@@ -1,5 +1,5 @@
-use gpui::prelude::*;
 use gpui::{App, AppContext, KeyBinding, TitlebarOptions, Window, WindowOptions, actions, div};
+use gpui::{FocusHandle, prelude::*};
 use gpui_component::menu::DropdownMenu;
 use gpui_component::{
     Root, WindowExt,
@@ -12,7 +12,9 @@ use quakk_app::{GraphView, MenuBar};
 // use quakk_app::QuakkApp;
 
 #[derive(Debug)]
-pub struct QuakkApp {}
+pub struct QuakkApp {
+    pub(crate) focus_handle: FocusHandle,
+}
 
 actions!(quakk, [Quit, ShowAbout, ShowCommandPalette, Debug]);
 
@@ -27,9 +29,9 @@ impl QuakkApp {
     pub const APP_TITLE: &'static str = "Quakk";
     pub const APP_ID: &'static str = "quakk";
 
-    pub fn new() -> Self {
-        Self {}
-    }
+    // pub fn new() -> Self {
+    // Self {}
+    // }
 
     fn show_about(&mut self, _: &ShowAbout, window: &mut Window, cx: &mut Context<Self>) {
         dbg!("about");
@@ -61,6 +63,7 @@ impl Render for QuakkApp {
             //     },
             // ))
             // .child(sidebar)
+            .track_focus(&self.focus_handle)
             .on_action(cx.listener(Self::show_command_palette))
             .on_action(cx.listener(Self::show_about))
             .child(
@@ -104,12 +107,16 @@ fn main() {
         gpui_component::init(cx);
         init(cx);
 
+        let focus_handle = cx.focus_handle();
+        let quakk_app = cx.new(|_| QuakkApp {
+            focus_handle: focus_handle,
+        });
+
         cx.on_action(|_: &Quit, cx| cx.quit());
         cx.bind_keys([KeyBinding::new("ctrl-q", Quit, None)]);
 
         cx.spawn(async move |cx| {
             cx.open_window(window_options, |window, cx| {
-                let quakk_app = cx.new(|_| QuakkApp::new());
                 cx.new(|cx| Root::new(quakk_app, window, cx))
             })
             .expect("Failed to open window")
