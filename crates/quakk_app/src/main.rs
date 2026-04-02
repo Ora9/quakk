@@ -10,13 +10,12 @@ use gpui_component::{
 use gpui_component_assets::Assets;
 use quakk_app::{GraphView, MenuBar};
 
-const ROOT_CONTEXT: &'static str = "QuakkRoot";
 actions!(quakk, [Quit, ShowAbout, ShowCommandPalette, Debug]);
 
 pub fn init(cx: &mut App) {
     cx.bind_keys([
-        KeyBinding::new("ctrl-p", ShowCommandPalette, ROOT_CONTEXT.into()),
-        KeyBinding::new("alt-a", ShowAbout, ROOT_CONTEXT.into()),
+        KeyBinding::new("ctrl-p", ShowCommandPalette, None),
+        KeyBinding::new("alt-a", ShowAbout, None),
     ]);
 }
 
@@ -52,7 +51,6 @@ impl Render for QuakkApp {
 
         div()
             .track_focus(&self.focus_handle)
-            .key_context(ROOT_CONTEXT)
             .on_action(cx.listener(Self::show_command_palette))
             .on_action(cx.listener(Self::show_about))
             .size_full()
