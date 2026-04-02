@@ -9,29 +9,25 @@ use gpui_component::{
 };
 use gpui_component_assets::Assets;
 use quakk_app::{GraphView, MenuBar};
-// use quakk_app::QuakkApp;
+
+const ROOT_CONTEXT: &'static str = "QuakkRoot";
+actions!(quakk, [Quit, ShowAbout, ShowCommandPalette, Debug]);
+
+pub fn init(cx: &mut App) {
+    cx.bind_keys([
+        KeyBinding::new("ctrl-p", ShowCommandPalette, ROOT_CONTEXT.into()),
+        KeyBinding::new("alt-a", ShowAbout, ROOT_CONTEXT.into()),
+    ]);
+}
 
 #[derive(Debug)]
 pub struct QuakkApp {
     pub(crate) focus_handle: FocusHandle,
 }
 
-actions!(quakk, [Quit, ShowAbout, ShowCommandPalette, Debug]);
-
-pub fn init(cx: &mut App) {
-    cx.bind_keys([
-        KeyBinding::new("ctrl-p", ShowCommandPalette, None),
-        KeyBinding::new("alt-a", ShowAbout, None),
-    ]);
-}
-
 impl QuakkApp {
     pub const APP_TITLE: &'static str = "Quakk";
     pub const APP_ID: &'static str = "quakk";
-
-    // pub fn new() -> Self {
-    // Self {}
-    // }
 
     fn show_about(&mut self, _: &ShowAbout, window: &mut Window, cx: &mut Context<Self>) {
         dbg!("about");
@@ -55,17 +51,11 @@ impl Render for QuakkApp {
         let view = cx.entity();
 
         div()
-            .size_full()
-            // .on_action(cx.listener(
-            //     |b, a: &ShowCommandPalette, _, cx: &mut Context<'_, QuakkApp>| {
-            //         dbg!(b, a);
-            //         cx.propagate();
-            //     },
-            // ))
-            // .child(sidebar)
             .track_focus(&self.focus_handle)
+            .key_context(ROOT_CONTEXT)
             .on_action(cx.listener(Self::show_command_palette))
             .on_action(cx.listener(Self::show_about))
+            .size_full()
             .child(
                 MenuBar::new().child(
                     h_flex().child(
