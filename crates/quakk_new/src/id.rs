@@ -97,12 +97,24 @@ pub enum PortId {
 
 #[derive(Debug)]
 pub struct NodePortId {
-    node_id: NodeId,
-    port_label: PortLabel,
+    id: NodeId,
+    label: PortLabel,
+}
+
+impl NodePortId {
+    pub fn new(id: NodeId, label: PortLabel) -> Self {
+        Self { id, label }
+    }
 }
 
 #[derive(Debug)]
 pub struct FunctionPortId {
-    function_id: FunctionId,
-    port_label: PortLabel,
+    id: FunctionId,
+    label: PortLabel,
+}
+
+impl FunctionPortId {
+    pub fn new(id: FunctionId, label: PortLabel) -> Self {
+        Self { id, label }
+    }
 }

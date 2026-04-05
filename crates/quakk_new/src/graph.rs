@@ -3,7 +3,13 @@ use std::{
     rc::Rc,
 };
 
-use crate::{FunctionId, Node, NodeBox, NodeId, PortId, PortLabel, VertexId};
+use crate::{FunctionId, Node, NodeBox, NodeId, NodePortId, PortId, PortLabel, VertexId};
+
+#[derive(Debug)]
+pub struct FunctionHandle {
+    id: FunctionId,
+    name: String,
+}
 
 #[derive(Debug)]
 pub struct NodeHandle {
@@ -35,12 +41,16 @@ impl NodeHandle {
     pub fn node(&self) -> Rc<NodeBox> {
         self.node.clone()
     }
+
+    pub fn port_id(&self, label: impl Into<PortLabel>) -> PortId {
+        PortId::Node(NodePortId::new(self.id, label.into()))
+    }
 }
 
 #[derive(Debug)]
 enum VertexInner {
     Node(NodeHandle),
-    Function,
+    Function(FunctionHandle),
 }
 
 #[derive(Debug)]
@@ -60,9 +70,9 @@ impl Vertex {
         }
     }
 
-    pub fn new_function(function_id: FunctionId) -> Self {
+    pub fn new_function(function: FunctionHandle) -> Self {
         Self {
-            inner: VertexInner::Function,
+            inner: VertexInner::Function(function),
             inbound: HashMap::new(),
             outbound: HashMap::new(),
         }
@@ -95,6 +105,8 @@ impl Graph {
     }
 
     pub fn patch(&mut self, port_out: PortId, port_in: PortId) -> Result<(), anyhow::Error> {
+        dbg!(port_out, port_in);
+
         Ok(())
         // match port_out {
         //     PortId::Node(node_id) =>

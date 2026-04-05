@@ -23,8 +23,10 @@ fn main() -> Result<(), anyhow::Error> {
 
         dbg!(&graph);
 
+        graph.patch(number_a.port_id("value"), mult.port_id("term1"));
+
         // let _ = graph.patch(
-        //     number_a.(&NumericConstantOut::Out),
+        //     // number_a.(&NumericConstantOut::Out),
         //     mult.node_in_id(&ArithmeticsIn::Term1),
         // );
         //     let _ = graph.patch(
