@@ -100,6 +100,13 @@ pub trait Port {
         PortLabel::new(Self::to_str(self))
     }
 
+    fn default_out() -> Option<PortLabel> {
+        None
+    }
+    fn default_in() -> Option<PortLabel> {
+        None
+    }
+
     fn direction(&self) -> PortDirection;
 }
 

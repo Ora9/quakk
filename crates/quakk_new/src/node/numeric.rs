@@ -2,12 +2,12 @@ use anyhow::{Context, anyhow};
 
 use crate::{DataBox, Node, NodeBox, Port, PortDirection, PortLabel};
 
-pub enum NumericPorts {
+pub enum NumericConstantPorts {
     Value,
     Out,
 }
 
-impl Port for NumericPorts {
+impl Port for NumericConstantPorts {
     fn from_str(str: &str) -> Option<Self>
     where
         Self: Sized,
@@ -32,6 +32,14 @@ impl Port for NumericPorts {
             Self::Out => PortDirection::Out,
         }
     }
+
+    fn default_in() -> Option<PortLabel> {
+        Some(Self::Value.to_label())
+    }
+
+    fn default_out() -> Option<PortLabel> {
+        Some(Self::Out.to_label())
+    }
 }
 
 #[derive(Debug)]
@@ -49,10 +57,10 @@ impl Node for NumericConstant {
     }
 
     fn mutate(&mut self, port_label: PortLabel, value: DataBox) -> Result<(), anyhow::Error> {
-        let port = NumericPorts::from_label(port_label).context("not a valid port")?;
+        let port = NumericConstantPorts::from_label(port_label).context("not a valid port")?;
 
         match port {
-            NumericPorts::Value => {
+            NumericConstantPorts::Value => {
                 self.value = value.into_f32().context("while trying to mutate")?;
                 Ok(())
             }
@@ -133,6 +141,10 @@ impl Port for ArithmeticsPorts {
             Self::Operation | Self::Term1 | Self::Term2 => PortDirection::In,
             Self::Out => PortDirection::Out,
         }
+    }
+
+    fn default_out() -> Option<PortLabel> {
+        Some(Self::Out.to_label())
     }
 }
 
