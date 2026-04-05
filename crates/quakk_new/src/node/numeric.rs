@@ -32,14 +32,6 @@ impl Port for NumericConstantPorts {
             Self::Out => PortDirection::Out,
         }
     }
-
-    fn default_in() -> Option<PortLabel> {
-        Some(Self::Value.to_label())
-    }
-
-    fn default_out() -> Option<PortLabel> {
-        Some(Self::Out.to_label())
-    }
 }
 
 #[derive(Debug)]
@@ -141,10 +133,6 @@ impl Port for ArithmeticsPorts {
             Self::Operation | Self::Term1 | Self::Term2 => PortDirection::In,
             Self::Out => PortDirection::Out,
         }
-    }
-
-    fn default_out() -> Option<PortLabel> {
-        Some(Self::Out.to_label())
     }
 }
 
