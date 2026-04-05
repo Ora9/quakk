@@ -76,7 +76,7 @@ pub trait Port {
     fn to_str(&self) -> &str;
 
     fn to_label(&self) -> PortLabel {
-        PortLabel::new(Self::to_str(&self))
+        PortLabel::new(Self::to_str(self))
     }
 
     fn direction(&self) -> PortDirection;
