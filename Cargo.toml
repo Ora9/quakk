@@ -8,10 +8,10 @@ edition = "2024"
 [workspace]
 resolver = "2"
 members = [
-    "crates/quakk",
+    "crates/quakk_new",
     "crates/quakk_cli",
-    "crates/quakk_audio"
-, "crates/quakk_app"]
+    # "crates/quakk_audio",
+    "crates/quakk_app"]
 default-members = ["crates/quakk_cli"]
 
 [workspace.lints.rust]
@@ -21,9 +21,9 @@ dead_code = "allow"
 
 [workspace.dependencies]
 # Workspace dependencies
-quakk = { path = "crates/quakk" }
-quakk_cli = { path = "crates/quakk_cli" }
-quakk_audio = { path = "crates/quakk_audio" }
+quakk = { path = "crates/quakk_new" }
+# quakk_cli = { path = "crates/quakk_cli" }
+# quakk_audio = { path = "crates/quakk_audio" }
 
 # External dependencies
 anyhow = "1.0.100"

@@ -1,4 +1,4 @@
-use anyhow::{Context, Ok, anyhow};
+use anyhow::{anyhow, Context, Ok};
 use std::{
     any::{self, Any},
     collections::{HashMap, HashSet},
@@ -9,9 +9,9 @@ use std::{
 };
 
 use crate::{
-    Data, LasyFold, Meta, Node,
     id::{InId, InoutId, NodeId, NodeInId, NodeInoutId, NodeOutId, OutId},
     numeric::{ArithmeticsIn, NumericConstantOut},
+    Data, LasyFold, Meta, Node,
 };
 
 /// `NodeHandle` is a cheaply cloned reference to a node
