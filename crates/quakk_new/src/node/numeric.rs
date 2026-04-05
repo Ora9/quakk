@@ -3,7 +3,7 @@ use anyhow::{Context, anyhow};
 use crate::{DataBox, Node, NodeBox, Port, PortDirection, PortLabel};
 
 pub enum NumericConstantPorts {
-    Value,
+    In,
     Out,
 }
 
@@ -13,7 +13,7 @@ impl Port for NumericConstantPorts {
         Self: Sized,
     {
         match str {
-            "value" => Some(Self::Value),
+            "in" => Some(Self::In),
             "out" => Some(Self::Out),
             _ => None,
         }
@@ -21,14 +21,14 @@ impl Port for NumericConstantPorts {
 
     fn to_str(&self) -> &str {
         match self {
-            Self::Value => "value",
+            Self::In => "in",
             Self::Out => "out",
         }
     }
 
     fn direction(&self) -> PortDirection {
         match self {
-            Self::Value => PortDirection::In,
+            Self::In => PortDirection::In,
             Self::Out => PortDirection::Out,
         }
     }
@@ -52,7 +52,7 @@ impl Node for NumericConstant {
         let port = NumericConstantPorts::from_label(port_label).context("not a valid port")?;
 
         match port {
-            NumericConstantPorts::Value => {
+            NumericConstantPorts::In => {
                 self.value = value.into_f32().context("while trying to mutate")?;
                 Ok(())
             }

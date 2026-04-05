@@ -37,11 +37,5 @@ pub trait Node: Debug {
 
     fn mutate(&mut self, port_label: PortLabel, value: DataBox) -> Result<(), anyhow::Error>;
 
-    fn default_port_in(&self) -> Option<PortLabel> {
-        None
-    }
-
-    fn default_port_out(&self) -> Option<PortLabel> {
-        None
-    }
+    // fn fold(&mut self, port_out: PortLabel) -> DataBox;
 }

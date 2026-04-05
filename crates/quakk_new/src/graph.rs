@@ -76,6 +76,14 @@ impl NodeHandle {
     pub fn port_id(&self, label: impl Into<PortLabel>) -> PortId {
         PortId::Node(NodePortId::new(self.id, label.into()))
     }
+
+    pub fn out(&self) -> PortId {
+        self.port_id("out")
+    }
+
+    pub fn r#in(&self) -> PortId {
+        self.port_id("in")
+    }
 }
 
 #[derive(Debug)]

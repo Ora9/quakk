@@ -11,9 +11,9 @@ fn main() -> Result<(), anyhow::Error> {
 
         dbg!(&graph);
 
-        let number_a = graph.insert_node(NumericConstant::init().mutate("value", 2.0)?);
-        let number_b = graph.insert_node(NumericConstant::init().mutate("value", 3.0)?);
-        let number_c = graph.insert_node(NumericConstant::init().mutate("value", 5.0)?);
+        let number_a = graph.insert_node(NumericConstant::init().mutate("in", 2.0)?);
+        let number_b = graph.insert_node(NumericConstant::init().mutate("in", 3.0)?);
+        let number_c = graph.insert_node(NumericConstant::init().mutate("in", 5.0)?);
 
         let mult = graph.insert_node(
             Arithmetics::init().mutate("operation", ArithmeticsOperation::Multiplication)?,
@@ -21,10 +21,10 @@ fn main() -> Result<(), anyhow::Error> {
         let add = graph
             .insert_node(Arithmetics::init().mutate("operation", ArithmeticsOperation::Addition)?);
 
-        graph.patch(number_a.port_id("value"), mult.port_id("term1"));
-        graph.patch(number_b.port_id("value"), mult.port_id("term2"));
-        graph.patch(mult.port_id("out"), add.port_id("term1"));
-        graph.patch(number_c.port_id("value"), add.port_id("term2"));
+        graph.patch(number_a.out(), mult.port_id("term1"));
+        graph.patch(number_b.out(), mult.port_id("term2"));
+        graph.patch(mult.out(), add.port_id("term1"));
+        graph.patch(number_c.out(), add.port_id("term2"));
 
         let number_out = graph.main_function_handle().port_id("number_out");
 
