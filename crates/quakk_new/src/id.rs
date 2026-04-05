@@ -15,6 +15,18 @@ impl VertexId {
     }
 }
 
+impl From<FunctionId> for VertexId {
+    fn from(value: FunctionId) -> Self {
+        Self::Function(value)
+    }
+}
+
+impl From<NodeId> for VertexId {
+    fn from(value: NodeId) -> Self {
+        Self::Node(value)
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NodeId {
     id: u64,
@@ -41,7 +53,7 @@ impl FunctionId {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PortLabel {
     label: String,
 }
@@ -98,13 +110,22 @@ pub trait Port {
 //     fn from(value: PortLabel) -> PortLabel {}
 // }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PortId {
     Function(FunctionPortId),
     Node(NodePortId),
 }
 
-#[derive(Debug, Clone)]
+impl PortId {
+    pub fn port_label(&self) -> PortLabel {
+        match self {
+            Self::Function(port_id) => port_id.label.clone(),
+            Self::Node(port_id) => port_id.label.clone(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct NodePortId {
     id: NodeId,
     label: PortLabel,
@@ -116,7 +137,7 @@ impl NodePortId {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FunctionPortId {
     id: FunctionId,
     label: PortLabel,

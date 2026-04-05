@@ -3,6 +3,8 @@ use std::{
     rc::Rc,
 };
 
+use anyhow::{Context, anyhow};
+
 use crate::{FunctionId, Node, NodeBox, NodeId, NodePortId, PortId, PortLabel, VertexId};
 
 #[derive(Debug, Clone)]
@@ -92,6 +94,20 @@ impl Vertex {
             outbound: HashMap::new(),
         }
     }
+
+    pub fn node_handle(&self) -> Result<NodeHandle, anyhow::Error> {
+        match &self.inner {
+            VertexInner::Node(node_handle) => Ok(node_handle.clone()),
+            _ => Err(anyhow!("this vertex is not a node")),
+        }
+    }
+
+    pub fn function_handle(&self) -> Result<FunctionHandle, anyhow::Error> {
+        match &self.inner {
+            VertexInner::Function(function_handle) => Ok(function_handle.clone()),
+            _ => Err(anyhow!("this vertex is not a function")),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -118,6 +134,20 @@ impl Graph {
         graph
     }
 
+    pub fn main_function_handle(&self) -> FunctionHandle {
+        // SAFETY: unwrap is used because the only time window where main_function_id is None, is during Self::new()
+        let id: VertexId = self
+            .main_function_id
+            .expect("main_function_id must be set in Graph::new()")
+            .into();
+
+        self.vertices
+            .get(&id)
+            .expect("a main function must be inserted into the Graph")
+            .function_handle()
+            .unwrap()
+    }
+
     pub fn insert_node(&mut self, node: NodeBox) -> NodeHandle {
         let id = NodeId::new_random();
         let node_handle = NodeHandle::new(id, node);
@@ -141,16 +171,20 @@ impl Graph {
         let vertex_out = VertexId::from_port_id(&port_out);
         let vertex_in = VertexId::from_port_id(&port_in);
 
-        dbg!(port_out, vertex_out);
-        dbg!(port_in, vertex_in);
+        self.vertices
+            .get_mut(&vertex_out)
+            .context("the given `out` node does not exists")?
+            .outbound
+            .entry(port_out.port_label())
+            .or_default()
+            .insert(port_in.clone());
 
-        dbg!(self.vertices.get_mut(&vertex_in));
-
-        // self.vertices.get_mut(k)
+        self.vertices
+            .get_mut(&vertex_in)
+            .context("the given `in` node does not exists")?
+            .inbound
+            .insert(port_in.port_label(), port_out);
 
         Ok(())
-        // match port_out {
-        //     PortId::Node(node_id) =>
-        // }
     }
 }

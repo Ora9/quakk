@@ -12,19 +12,18 @@ fn main() -> Result<(), anyhow::Error> {
         dbg!(&graph);
 
         let number_a = graph.insert_node(NumericConstant::init().mutate("value", 2.0)?);
-        let number_b = graph.insert_node(NumericConstant::init().mutate("value", 2.0)?);
+        let number_b = graph.insert_node(NumericConstant::init().mutate("value", 3.0)?);
         let number_c = graph.insert_node(NumericConstant::init().mutate("value", 5.0)?);
 
         let mult = graph.insert_node(
             Arithmetics::init().mutate("operation", ArithmeticsOperation::Multiplication)?,
         );
-        let mult = graph
+        let add = graph
             .insert_node(Arithmetics::init().mutate("operation", ArithmeticsOperation::Addition)?);
-
-        dbg!(&graph);
 
         graph.patch(number_a.port_id("value"), mult.port_id("term1"));
 
+        dbg!(&graph);
         // let _ = graph.patch(
         //     // number_a.(&NumericConstantOut::Out),
         //     mult.node_in_id(&ArithmeticsIn::Term1),
