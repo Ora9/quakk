@@ -5,7 +5,9 @@ use std::{
 
 use anyhow::{Context, anyhow};
 
-use crate::{FunctionId, Node, NodeBox, NodeId, NodePortId, PortId, PortLabel, VertexId};
+use crate::{
+    FunctionId, FunctionPortId, Node, NodeBox, NodeId, NodePortId, PortId, PortLabel, VertexId,
+};
 
 #[derive(Debug, Clone)]
 pub struct Function {
@@ -25,6 +27,18 @@ impl FunctionHandle {
             id: function_id,
             function,
         }
+    }
+
+    pub fn function_id(&self) -> FunctionId {
+        self.id
+    }
+
+    pub fn function(&self) -> Function {
+        self.function.clone()
+    }
+
+    pub fn port_id(&self, label: impl Into<PortLabel>) -> PortId {
+        PortId::Function(FunctionPortId::new(self.id, label.into()))
     }
 }
 

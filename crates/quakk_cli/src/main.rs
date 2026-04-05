@@ -26,6 +26,10 @@ fn main() -> Result<(), anyhow::Error> {
         graph.patch(mult.port_id("out"), add.port_id("term1"));
         graph.patch(number_c.port_id("value"), add.port_id("term2"));
 
+        let number_out = graph.main_function_handle().port_id("number_out");
+
+        graph.patch(add.port_id("out"), number_out);
+
         dbg!(&graph);
 
         //     let textconst = graph.insert(Box::new(TextConstant::new("Hello World!".to_string())));
