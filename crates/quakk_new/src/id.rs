@@ -6,6 +6,15 @@ pub enum VertexId {
     Function(FunctionId),
 }
 
+impl VertexId {
+    pub fn from_port_id(port_id: &PortId) -> Self {
+        match port_id {
+            PortId::Node(node_id) => Self::Node(node_id.id),
+            PortId::Function(function_id) => Self::Function(function_id.id),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NodeId {
     id: u64,
@@ -32,7 +41,7 @@ impl FunctionId {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PortLabel {
     label: String,
 }
@@ -89,13 +98,13 @@ pub trait Port {
 //     fn from(value: PortLabel) -> PortLabel {}
 // }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum PortId {
     Function(FunctionPortId),
     Node(NodePortId),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct NodePortId {
     id: NodeId,
     label: PortLabel,
@@ -107,7 +116,7 @@ impl NodePortId {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FunctionPortId {
     id: FunctionId,
     label: PortLabel,
