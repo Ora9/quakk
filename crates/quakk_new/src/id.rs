@@ -27,12 +27,16 @@ impl From<NodeId> for VertexId {
     }
 }
 
+/// An id used to identify a [`Node`]
+///
+/// Each new node inserted in the [`Graph`] is assigned a new random id
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NodeId {
     id: u64,
 }
 
 impl NodeId {
+    /// Return a new random `NodeId`
     pub fn new_random() -> Self {
         Self {
             id: RandomState::new().build_hasher().finish(),
@@ -40,13 +44,17 @@ impl NodeId {
     }
 }
 
+/// An id used to identify a [`Function`]
+///
+/// Each new function declared in the [`Graph `] is assigned a new random id
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FunctionId {
     id: u64,
 }
 
 impl FunctionId {
-    pub fn new() -> Self {
+    /// Return a new random `FunctionId`
+    pub fn new_random() -> Self {
         Self {
             id: RandomState::new().build_hasher().finish(),
         }
@@ -110,6 +118,7 @@ pub trait Port {
 //     fn from(value: PortLabel) -> PortLabel {}
 // }
 
+/// Point to either a node port or function port
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PortId {
     Function(FunctionPortId),

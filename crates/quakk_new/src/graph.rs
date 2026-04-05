@@ -158,7 +158,7 @@ impl Graph {
     }
 
     pub fn insert_function(&mut self, function: Function) -> FunctionHandle {
-        let id = FunctionId::new();
+        let id = FunctionId::new_random();
         let function_handle = FunctionHandle::new(id, function);
 
         let vertex = Vertex::new_function(function_handle.clone());
