@@ -22,24 +22,11 @@ fn main() -> Result<(), anyhow::Error> {
             .insert_node(Arithmetics::init().mutate("operation", ArithmeticsOperation::Addition)?);
 
         graph.patch(number_a.port_id("value"), mult.port_id("term1"));
+        graph.patch(number_b.port_id("value"), mult.port_id("term2"));
+        graph.patch(mult.port_id("out"), add.port_id("term1"));
+        graph.patch(number_c.port_id("value"), add.port_id("term2"));
 
         dbg!(&graph);
-        // let _ = graph.patch(
-        //     // number_a.(&NumericConstantOut::Out),
-        //     mult.node_in_id(&ArithmeticsIn::Term1),
-        // );
-        //     let _ = graph.patch(
-        //         number_b.node_out_id(&NumericConstantOut::Out),
-        //         mult.node_in_id(&ArithmeticsIn::Term2),
-        //     );
-        //     let _ = graph.patch(
-        //         mult.node_out_id(&ArithmeticsOut::Out),
-        //         add.node_in_id(&ArithmeticsIn::Term1),
-        //     );
-        //     let _ = graph.patch(
-        //         number_c.node_out_id(&NumericConstantOut::Out),
-        //         add.node_in_id(&ArithmeticsIn::Term2),
-        //     );
 
         //     let textconst = graph.insert(Box::new(TextConstant::new("Hello World!".to_string())));
         //     let textsplit = graph.insert(Box::new(TextSplit::default()));
