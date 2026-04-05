@@ -135,7 +135,7 @@ impl Graph {
     }
 
     pub fn main_function_handle(&self) -> FunctionHandle {
-        // SAFETY: unwrap is used because the only time window where main_function_id is None, is during Self::new()
+        // SAFETY: unwrap is used because the main function must be inserted into the graph during Self::new()
         let id: VertexId = self
             .main_function_id
             .expect("main_function_id must be set in Graph::new()")
