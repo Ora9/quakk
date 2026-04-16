@@ -1,6 +1,6 @@
 use anyhow::{Context, anyhow, bail};
 
-use crate::{DataBox, LasyFold, Node, NodeBox, Port, PortDirection, PortId, PortLabel};
+use crate::{Data, LasyFold, Node, NodeBox, Number, Port, PortDirection, PortId, PortLabel};
 
 pub enum NumericConstantPorts {
     In,
@@ -36,7 +36,7 @@ impl Port for NumericConstantPorts {
 
 #[derive(Debug)]
 pub struct NumericConstant {
-    value: f32,
+    value: Number,
 }
 
 impl Node for NumericConstant {
@@ -48,19 +48,19 @@ impl Node for NumericConstant {
         "Numeric Constant"
     }
 
-    fn mutate(&mut self, port_label: PortLabel, value: DataBox) -> Result<(), anyhow::Error> {
+    fn mutate(&mut self, port_label: PortLabel, value: Data) -> Result<(), anyhow::Error> {
         let port = NumericConstantPorts::from_label(port_label).context("not a valid port")?;
 
         match port {
             NumericConstantPorts::In => {
-                self.value = value.into_f32().context("while trying to mutate")?;
+                self.value = value.into_number().context("while trying to mutate")?;
                 Ok(())
             }
             _ => Err(anyhow!("not a valid input port")),
         }
     }
 
-    fn fold(&mut self, port_out: PortLabel, lasy_fold: LasyFold) -> Result<DataBox, anyhow::Error> {
+    fn fold(&mut self, port_out: PortLabel, lasy_fold: LasyFold) -> Result<Data, anyhow::Error> {
         Err(anyhow!("ho that's unimplemented"))
     }
 }
@@ -73,10 +73,10 @@ pub enum ArithmeticsOperation {
     Division = 3,
 }
 
-impl TryFrom<f32> for ArithmeticsOperation {
+impl TryFrom<Number> for ArithmeticsOperation {
     type Error = anyhow::Error;
 
-    fn try_from(value: f32) -> Result<Self, Self::Error> {
+    fn try_from(value: Number) -> Result<Self, Self::Error> {
         use ArithmeticsOperation::*;
 
         match value as u32 {
@@ -89,16 +89,16 @@ impl TryFrom<f32> for ArithmeticsOperation {
     }
 }
 
-impl TryFrom<DataBox> for ArithmeticsOperation {
+impl TryFrom<Data> for ArithmeticsOperation {
     type Error = anyhow::Error;
-    fn try_from(value: DataBox) -> Result<Self, Self::Error> {
-        Self::try_from(value.into_f32()?)
+    fn try_from(value: Data) -> Result<Self, Self::Error> {
+        Self::try_from(value.into_number()?)
     }
 }
 
-impl Into<DataBox> for ArithmeticsOperation {
-    fn into(self) -> DataBox {
-        DataBox::new(self as u32 as f32)
+impl Into<Data> for ArithmeticsOperation {
+    fn into(self) -> Data {
+        Data::new(self as u32 as Number)
     }
 }
 
@@ -144,8 +144,8 @@ impl Port for ArithmeticsPorts {
 #[derive(Debug)]
 pub struct Arithmetics {
     operation: ArithmeticsOperation,
-    term1: f32,
-    term2: f32,
+    term1: Number,
+    term2: Number,
 }
 
 impl Node for Arithmetics {
@@ -164,21 +164,21 @@ impl Node for Arithmetics {
         "Arithmetics"
     }
 
-    fn mutate(&mut self, port_label: PortLabel, value: DataBox) -> Result<(), anyhow::Error> {
+    fn mutate(&mut self, port_label: PortLabel, value: Data) -> Result<(), anyhow::Error> {
         let port = ArithmeticsPorts::from_label(port_label).context("not a valid port")?;
 
         match port {
             ArithmeticsPorts::Term1 => {
-                self.term1 = value.into_f32().context("term1 is invalid")?;
+                self.term1 = value.into_number().context("term1 is invalid")?;
                 Ok(())
             }
             ArithmeticsPorts::Term2 => {
-                self.term2 = value.into_f32().context("term2 is invalid")?;
+                self.term2 = value.into_number().context("term2 is invalid")?;
                 Ok(())
             }
             ArithmeticsPorts::Operation => {
                 self.operation = ArithmeticsOperation::try_from(
-                    value.into_f32().context("operation is invalid")?,
+                    value.into_number().context("operation is invalid")?,
                 )?;
                 Ok(())
             }
@@ -186,7 +186,7 @@ impl Node for Arithmetics {
         }
     }
 
-    fn fold(&mut self, port_out: PortLabel, lasy_fold: LasyFold) -> Result<DataBox, anyhow::Error> {
+    fn fold(&mut self, port_out: PortLabel, lasy_fold: LasyFold) -> Result<Data, anyhow::Error> {
         if let Some(port) = ArithmeticsPorts::from_label(port_out)
             && port != ArithmeticsPorts::Out
         {
@@ -197,6 +197,6 @@ impl Node for Arithmetics {
 
         dbg!(self);
 
-        Ok(DataBox::new(2.0))
+        Ok(Data::new(2.0))
     }
 }

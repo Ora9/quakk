@@ -2,7 +2,7 @@ use std::{fmt::Debug, rc::Rc};
 
 use anyhow::Context;
 
-use crate::{Data, DataBox, LasyFold, NodeId, NodePortId, PortId, PortLabel};
+use crate::{Data, DataTrait, LasyFold, NodeId, NodePortId, PortId, PortLabel};
 
 pub mod numeric;
 
@@ -63,7 +63,7 @@ impl NodeBox {
     pub fn mutate(
         mut self,
         port: impl Into<PortLabel>,
-        value: impl Into<DataBox>,
+        value: impl Into<Data>,
     ) -> Result<Self, anyhow::Error> {
         self.inner
             .mutate(port.into(), value.into())
@@ -75,7 +75,7 @@ impl NodeBox {
         &mut self,
         port_out: PortLabel,
         lasy_fold: LasyFold,
-    ) -> Result<DataBox, anyhow::Error> {
+    ) -> Result<Data, anyhow::Error> {
         self.inner.fold(port_out, lasy_fold)
     }
 }
@@ -87,7 +87,7 @@ pub trait Node: Debug {
 
     fn title(&self) -> &str;
 
-    fn mutate(&mut self, port_label: PortLabel, value: DataBox) -> Result<(), anyhow::Error>;
+    fn mutate(&mut self, port_label: PortLabel, value: Data) -> Result<(), anyhow::Error>;
 
-    fn fold(&mut self, port_out: PortLabel, lasy_fold: LasyFold) -> Result<DataBox, anyhow::Error>;
+    fn fold(&mut self, port_out: PortLabel, lasy_fold: LasyFold) -> Result<Data, anyhow::Error>;
 }

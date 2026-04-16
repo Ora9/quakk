@@ -1,6 +1,6 @@
 use anyhow::bail;
 use quakk::{
-    Node, NodeBox, Quakk,
+    Node, NodeBox, Number, Quakk,
     numeric::{Arithmetics, ArithmeticsOperation, NumericConstant},
 };
 

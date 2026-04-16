@@ -54,7 +54,7 @@ impl Quakk {
         writer(&mut graph)
     }
 
-    pub fn fold_for(&self, port_label: impl Into<PortLabel>) -> Result<DataBox, anyhow::Error> {
+    pub fn fold_for(&self, port_label: impl Into<PortLabel>) -> Result<Data, anyhow::Error> {
         let (entry_vertex, entry_out_port) = self.graph(|graph| {
             let main_function = graph.main_function_vertex();
             let entry_out_port = main_function

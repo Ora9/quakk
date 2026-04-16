@@ -1,6 +1,6 @@
 use std::{rc::Rc, sync::Mutex};
 
-use crate::{DataBox, Graph, PortLabel, VertexId};
+use crate::{Data, Graph, PortLabel, VertexId};
 
 pub struct LasyFold {
     vertex_id: VertexId,
@@ -12,7 +12,7 @@ impl LasyFold {
         Self { vertex_id, graph }
     }
 
-    pub fn get_in(&self, port_label: impl Into<PortLabel>) -> Result<DataBox, anyhow::Error> {
+    pub fn get_in(&self, port_label: impl Into<PortLabel>) -> Result<Data, anyhow::Error> {
         let graph = self
             .graph
             .lock()

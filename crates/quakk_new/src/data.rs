@@ -5,16 +5,16 @@ use std::{
 
 use anyhow::anyhow;
 
-pub trait Data: Any + Debug {}
+pub trait DataTrait: Any + Debug {}
 
-impl<T> Data for T where T: Any + Debug {}
+// impl<T> DataTrait for T where T: Any + Debug {}
 
 // #[derive(Debug)]
-pub struct DataBox {
-    inner: Box<dyn Data>,
+pub struct Data {
+    inner: Box<dyn DataTrait>,
 }
 
-impl Debug for DataBox {
+impl Debug for Data {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("DataBox")
             .field("inner", &self.inner)
@@ -23,37 +23,44 @@ impl Debug for DataBox {
     }
 }
 
-impl DataBox {
-    pub fn new(value: impl Data) -> Self {
-        DataBox {
+impl Data {
+    pub fn new(value: impl DataTrait) -> Self {
+        Data {
             inner: Box::new(value),
         }
     }
 
-    pub fn into_f32(self) -> Result<f32, anyhow::Error> {
-        self.downcast::<f32>().ok_or(anyhow!("not an f32"))
+    pub fn into_number(self) -> Result<Number, anyhow::Error> {
+        self.downcast::<Number>().ok_or(anyhow!("not a number"))
     }
 
-    pub fn downcast<T: Data>(self) -> Option<T> {
+    // pub fn into_f32(self) -> Result<f32, anyhow::Error> {
+    //     self.downcast::<f32>().ok_or(anyhow!("not an f32"))
+    // }
+
+    pub fn downcast<T: DataTrait>(self) -> Option<T> {
         (self.inner as Box<dyn Any>)
             .downcast::<T>()
             .ok()
             .map(|data| *data)
     }
 
-    pub fn downcast_ref<T: Data>(&self) -> Option<&T> {
+    pub fn downcast_ref<T: DataTrait>(&self) -> Option<&T> {
         ((&*self.inner) as &dyn Any).downcast_ref::<T>()
     }
 }
 
-impl From<f32> for DataBox {
-    fn from(value: f32) -> Self {
-        DataBox::new(value)
+impl From<Number> for Data {
+    fn from(value: Number) -> Self {
+        Data::new(value)
     }
 }
 
-impl From<u32> for DataBox {
-    fn from(value: u32) -> Self {
-        DataBox::new(value)
-    }
-}
+// impl From<u32> for Data {
+//     fn from(value: u32) -> Self {
+//         Data::new(value)
+//     }
+// }
+
+pub type Number = f64;
+impl DataTrait for Number {}
