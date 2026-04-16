@@ -6,47 +6,9 @@ use std::{
 use anyhow::{Context, anyhow};
 
 use crate::{
-    DataBox, FunctionId, FunctionPortId, Node, NodeBox, NodeId, NodePortId, PortId, PortLabel,
-    VertexId,
+    DataBox, Function, FunctionHandle, FunctionId, FunctionPortId, Node, NodeBox, NodeId,
+    NodePortId, PortId, PortLabel, VertexId,
 };
-
-#[derive(Debug, Clone)]
-pub struct Function {
-    name: String,
-    color: u32,
-}
-
-#[derive(Debug, Clone)]
-pub struct FunctionHandle {
-    id: FunctionId,
-    function: Function,
-}
-
-impl FunctionHandle {
-    fn new(function_id: FunctionId, function: Function) -> FunctionHandle {
-        FunctionHandle {
-            id: function_id,
-            function,
-        }
-    }
-
-    pub fn function_id(&self) -> FunctionId {
-        self.id
-    }
-
-    pub fn function(&self) -> Function {
-        self.function.clone()
-    }
-
-    pub fn port_id(&self, label: impl Into<PortLabel>) -> PortId {
-        PortId::Function(FunctionPortId::new(self.id, label.into()))
-    }
-
-    // fn fold_for(&self, graph: Graph, label: impl Into<PortLabel>) -> Result<DataBox, anyhow::Error> {
-
-    //     self.function.
-    // }
-}
 
 #[derive(Debug)]
 pub struct NodeHandle {
@@ -165,7 +127,7 @@ impl Graph {
         };
 
         let main_handle = graph.insert_function(main);
-        graph.main_function_id = Some(main_handle.id.into());
+        graph.main_function_id = Some(main_handle.id().into());
 
         graph
     }
