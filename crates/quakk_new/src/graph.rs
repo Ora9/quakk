@@ -1,58 +1,10 @@
-use std::{
-    collections::{HashMap, HashSet},
-    rc::Rc,
-};
+use std::collections::{HashMap, HashSet};
 
 use anyhow::{Context, anyhow};
 
 use crate::{
-    DataBox, Function, FunctionHandle, FunctionId, FunctionPortId, Node, NodeBox, NodeId,
-    NodePortId, PortId, PortLabel, VertexId,
+    Function, FunctionHandle, FunctionId, NodeBox, NodeHandle, NodeId, PortId, PortLabel, VertexId,
 };
-
-#[derive(Debug)]
-pub struct NodeHandle {
-    id: NodeId,
-    node: Rc<NodeBox>,
-}
-
-impl Clone for NodeHandle {
-    fn clone(&self) -> Self {
-        NodeHandle {
-            id: self.id,
-            node: self.node.clone(),
-        }
-    }
-}
-
-impl NodeHandle {
-    fn new(node_id: NodeId, node: NodeBox) -> Self {
-        Self {
-            id: node_id,
-            node: Rc::new(node),
-        }
-    }
-
-    pub fn node_id(&self) -> NodeId {
-        self.id
-    }
-
-    pub fn node(&self) -> Rc<NodeBox> {
-        self.node.clone()
-    }
-
-    pub fn port_id(&self, label: impl Into<PortLabel>) -> PortId {
-        PortId::Node(NodePortId::new(self.id, label.into()))
-    }
-
-    pub fn out(&self) -> PortId {
-        self.port_id("out")
-    }
-
-    pub fn r#in(&self) -> PortId {
-        self.port_id("in")
-    }
-}
 
 #[derive(Debug, Clone)]
 enum VertexInner {
