@@ -27,9 +27,9 @@ impl From<NodeId> for VertexId {
     }
 }
 
-/// An id used to identify a [`Node`]
+/// Identifies a [`Node`]
 ///
-/// Each new node inserted in the [`Graph`] is assigned a new random id
+/// Each new node inserted in a [`Graph`] is assigned a new random id
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NodeId {
     id: u64,
@@ -37,6 +37,12 @@ pub struct NodeId {
 
 impl NodeId {
     /// Return a new random `NodeId`
+    ///
+    /// ```
+    /// # use quakk::NodeId;
+    ///
+    /// assert_ne!(NodeId::new_random(), NodeId::new_random());
+    /// ```
     pub fn new_random() -> Self {
         Self {
             id: RandomState::new().build_hasher().finish(),
@@ -44,9 +50,9 @@ impl NodeId {
     }
 }
 
-/// An id used to identify a [`Function`]
+/// Identifies a [`Function`]
 ///
-/// Each new function declared in the [`Graph `] is assigned a new random id
+/// Each new function declared in a [`Graph `] is assigned a new random id
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct FunctionId {
     id: u64,
@@ -54,6 +60,11 @@ pub struct FunctionId {
 
 impl FunctionId {
     /// Return a new random `FunctionId`
+    /// ```
+    /// # use quakk::FunctionId;
+    ///
+    /// assert_ne!(FunctionId::new_random(), FunctionId::new_random());
+    /// ```
     pub fn new_random() -> Self {
         Self {
             id: RandomState::new().build_hasher().finish(),

@@ -72,10 +72,10 @@ impl Quakk {
             .node_handle()
             .context("function to function not yet handled")?;
 
-        node_handle.node().fold(
-            entry_out_port.port_label(),
-            LasyFold::new(entry_out_port.as_vertex_id(), self.graph.clone()),
-        );
+        // node_handle.node().fold(
+        //     entry_out_port.port_label(),
+        //     LasyFold::new(entry_out_port.as_vertex_id(), self.graph.clone()),
+        // );
 
         // main_function.
 

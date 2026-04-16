@@ -60,6 +60,7 @@ impl Vertex {
     }
 }
 
+/// A `Graph` hold nodes and handle patches (connection between nodes)
 #[derive(Debug)]
 pub struct Graph {
     vertices: HashMap<VertexId, Vertex>,
@@ -67,6 +68,7 @@ pub struct Graph {
 }
 
 impl Graph {
+    /// Create a new and initialized graph, only holding a main function
     pub fn new() -> Self {
         let mut graph = Graph {
             vertices: HashMap::new(),
