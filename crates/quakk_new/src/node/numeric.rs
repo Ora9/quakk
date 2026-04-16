@@ -1,6 +1,6 @@
-use anyhow::{Context, anyhow};
+use anyhow::{Context, anyhow, bail};
 
-use crate::{DataBox, Node, NodeBox, Port, PortDirection, PortLabel};
+use crate::{DataBox, LasyFold, Node, NodeBox, Port, PortDirection, PortId, PortLabel};
 
 pub enum NumericConstantPorts {
     In,
@@ -59,6 +59,10 @@ impl Node for NumericConstant {
             _ => Err(anyhow!("not a valid input port")),
         }
     }
+
+    fn fold(&mut self, port_out: PortLabel, lasy_fold: LasyFold) -> Result<DataBox, anyhow::Error> {
+        Err(anyhow!("ho that's unimplemented"))
+    }
 }
 
 #[derive(Debug)]
@@ -98,6 +102,7 @@ impl Into<DataBox> for ArithmeticsOperation {
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum ArithmeticsPorts {
     Operation,
     Term1,
@@ -172,7 +177,6 @@ impl Node for Arithmetics {
                 Ok(())
             }
             ArithmeticsPorts::Operation => {
-                dbg!(&value);
                 self.operation = ArithmeticsOperation::try_from(
                     value.into_f32().context("operation is invalid")?,
                 )?;
@@ -180,5 +184,19 @@ impl Node for Arithmetics {
             }
             _ => Err(anyhow!("not a valid input port")),
         }
+    }
+
+    fn fold(&mut self, port_out: PortLabel, lasy_fold: LasyFold) -> Result<DataBox, anyhow::Error> {
+        if let Some(port) = ArithmeticsPorts::from_label(port_out)
+            && port != ArithmeticsPorts::Out
+        {
+            return Err(anyhow!("no a valid output port"));
+        }
+
+        self.mutate("term1".into(), lasy_fold.get_in("term1")?);
+
+        dbg!(self);
+
+        Ok(DataBox::new(2.0))
     }
 }

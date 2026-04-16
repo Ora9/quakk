@@ -1,16 +1,13 @@
+use anyhow::bail;
 use quakk::{
     Node, NodeBox, Quakk,
     numeric::{Arithmetics, ArithmeticsOperation, NumericConstant},
 };
 
 fn main() -> Result<(), anyhow::Error> {
-    let qk = Quakk::new();
+    let mut qk = Quakk::new();
 
-    {
-        let mut graph = qk.graph.lock().unwrap();
-
-        dbg!(&graph);
-
+    qk.graph_mut(|graph| {
         let number_a = graph.insert_node(NumericConstant::init().mutate("in", 2.0)?);
         let number_b = graph.insert_node(NumericConstant::init().mutate("in", 3.0)?);
         let number_c = graph.insert_node(NumericConstant::init().mutate("in", 5.0)?);
@@ -30,7 +27,7 @@ fn main() -> Result<(), anyhow::Error> {
 
         graph.patch(add.port_id("out"), number_out);
 
-        dbg!(&graph);
+        // dbg!(&graph);
 
         //     let textconst = graph.insert(Box::new(TextConstant::new("Hello World!".to_string())));
         //     let textsplit = graph.insert(Box::new(TextSplit::default()));
@@ -49,9 +46,11 @@ fn main() -> Result<(), anyhow::Error> {
         //     let _ = graph.patch(textsplit.node_out_id(&TextSplitOut::Start), num_out);
 
         //     dbg!(graph);
-    }
+        Ok::<(), anyhow::Error>(())
+    })?;
 
-    // dbg!(qk.fold_for(GraphOutOut::Numeric).unwrap());
+    qk.fold_for("number_out");
+    // dbg!(qk.fold_for("number_out").unwrap());
 
     Ok(())
 }

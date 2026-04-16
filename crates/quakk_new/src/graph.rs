@@ -6,7 +6,8 @@ use std::{
 use anyhow::{Context, anyhow};
 
 use crate::{
-    FunctionId, FunctionPortId, Node, NodeBox, NodeId, NodePortId, PortId, PortLabel, VertexId,
+    DataBox, FunctionId, FunctionPortId, Node, NodeBox, NodeId, NodePortId, PortId, PortLabel,
+    VertexId,
 };
 
 #[derive(Debug, Clone)]
@@ -40,6 +41,11 @@ impl FunctionHandle {
     pub fn port_id(&self, label: impl Into<PortLabel>) -> PortId {
         PortId::Function(FunctionPortId::new(self.id, label.into()))
     }
+
+    // fn fold_for(&self, graph: Graph, label: impl Into<PortLabel>) -> Result<DataBox, anyhow::Error> {
+
+    //     self.function.
+    // }
 }
 
 #[derive(Debug)]
@@ -86,13 +92,13 @@ impl NodeHandle {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum VertexInner {
     Node(NodeHandle),
     Function(FunctionHandle),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Vertex {
     inner: VertexInner,
 
@@ -130,12 +136,20 @@ impl Vertex {
             _ => Err(anyhow!("this vertex is not a function")),
         }
     }
+
+    pub fn outbound_for(&self, port_label: impl Into<PortLabel>) -> Option<HashSet<PortId>> {
+        self.outbound.get(&port_label.into()).cloned()
+    }
+
+    pub fn inbound_for(&self, port_label: impl Into<PortLabel>) -> Option<PortId> {
+        self.inbound.get(&port_label.into()).cloned()
+    }
 }
 
 #[derive(Debug)]
 pub struct Graph {
     vertices: HashMap<VertexId, Vertex>,
-    main_function_id: Option<FunctionId>,
+    main_function_id: Option<VertexId>,
 }
 
 impl Graph {
@@ -151,23 +165,9 @@ impl Graph {
         };
 
         let main_handle = graph.insert_function(main);
-        graph.main_function_id = Some(main_handle.id);
+        graph.main_function_id = Some(main_handle.id.into());
 
         graph
-    }
-
-    pub fn main_function_handle(&self) -> FunctionHandle {
-        // SAFETY: unwrap is used because the main function must be inserted into the graph during Self::new()
-        let id: VertexId = self
-            .main_function_id
-            .expect("main_function_id must be set in Graph::new()")
-            .into();
-
-        self.vertices
-            .get(&id)
-            .expect("a main function must be inserted into the Graph")
-            .function_handle()
-            .unwrap()
     }
 
     pub fn insert_node(&mut self, node: NodeBox) -> NodeHandle {
@@ -209,4 +209,46 @@ impl Graph {
 
         Ok(())
     }
+
+    pub fn vertex_for(&self, vertex_id: VertexId) -> Result<Vertex, anyhow::Error> {
+        self.vertices
+            .get(&vertex_id)
+            .cloned()
+            .context("no node was found at the given id")
+    }
+
+    pub fn node_handle_for(&self, node_id: NodeId) -> Result<NodeHandle, anyhow::Error> {
+        self.vertex_for(VertexId::Node(node_id))?.node_handle()
+    }
+
+    pub fn function_handle_for(
+        &self,
+        function_id: FunctionId,
+    ) -> Result<FunctionHandle, anyhow::Error> {
+        self.vertex_for(VertexId::Function(function_id))?
+            .function_handle()
+    }
+
+    pub fn main_function_handle(&self) -> FunctionHandle {
+        self.main_function_vertex()
+            .function_handle()
+            .expect("a main function must be inserted into the Graph")
+    }
+
+    pub fn main_function_vertex(&self) -> Vertex {
+        // SAFETY: unwrap is used because the main function must be inserted into the graph during Self::new()
+        let id = self
+            .main_function_id
+            .expect("`main_function_id` must be set in Graph::new()");
+
+        self.vertex_for(id.into())
+            .expect("a main function must be inserted into the Graph")
+    }
+
+    // pub fn fold_for(&self, port_label: impl Into<PortLabel>) -> Result<DataBox, anyhow::Error> {
+
+    //     dbg!(main.inbound);
+
+    //     unimplemented!()
+    // }
 }

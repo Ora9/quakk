@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use anyhow::Context;
 
-use crate::{Data, DataBox, PortLabel};
+use crate::{Data, DataBox, LasyFold, PortLabel};
 
 pub mod numeric;
 
@@ -26,6 +26,14 @@ impl NodeBox {
             .context("could not mutate")?;
         Ok(self)
     }
+
+    pub fn fold(
+        &mut self,
+        port_out: PortLabel,
+        lasy_fold: LasyFold,
+    ) -> Result<DataBox, anyhow::Error> {
+        self.inner.fold(port_out, lasy_fold)
+    }
 }
 
 pub trait Node: Debug {
@@ -37,5 +45,5 @@ pub trait Node: Debug {
 
     fn mutate(&mut self, port_label: PortLabel, value: DataBox) -> Result<(), anyhow::Error>;
 
-    // fn fold(&mut self, port_out: PortLabel) -> DataBox;
+    fn fold(&mut self, port_out: PortLabel, lasy_fold: LasyFold) -> Result<DataBox, anyhow::Error>;
 }

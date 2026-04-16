@@ -9,8 +9,8 @@ pub enum VertexId {
 impl VertexId {
     pub fn from_port_id(port_id: &PortId) -> Self {
         match port_id {
-            PortId::Node(node_id) => Self::Node(node_id.id),
-            PortId::Function(function_id) => Self::Function(function_id.id),
+            PortId::Node(node_id) => Self::Node(node_id.node_id),
+            PortId::Function(function_id) => Self::Function(function_id.function_id),
         }
     }
 }
@@ -121,8 +121,8 @@ pub trait Port {
 /// Point to either a node port or function port
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PortId {
-    Function(FunctionPortId),
     Node(NodePortId),
+    Function(FunctionPortId),
 }
 
 impl PortId {
@@ -132,28 +132,49 @@ impl PortId {
             Self::Node(port_id) => port_id.label.clone(),
         }
     }
+
+    pub fn node_id(&self) -> Option<NodeId> {
+        match self {
+            Self::Node(node_port_id) => Some(node_port_id.node_id),
+            _ => None,
+        }
+    }
+
+    pub fn function_id(&self) -> Option<FunctionId> {
+        match self {
+            Self::Function(function_port_id) => Some(function_port_id.function_id),
+            _ => None,
+        }
+    }
+
+    pub fn as_vertex_id(&self) -> VertexId {
+        match self {
+            Self::Node(node_port_id) => VertexId::Node(node_port_id.node_id),
+            Self::Function(function_port_id) => VertexId::Function(function_port_id.function_id),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct NodePortId {
-    id: NodeId,
+    node_id: NodeId,
     label: PortLabel,
 }
 
 impl NodePortId {
-    pub fn new(id: NodeId, label: PortLabel) -> Self {
-        Self { id, label }
+    pub fn new(node_id: NodeId, label: PortLabel) -> Self {
+        Self { node_id, label }
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FunctionPortId {
-    id: FunctionId,
+    function_id: FunctionId,
     label: PortLabel,
 }
 
 impl FunctionPortId {
-    pub fn new(id: FunctionId, label: PortLabel) -> Self {
-        Self { id, label }
+    pub fn new(function_id: FunctionId, label: PortLabel) -> Self {
+        Self { function_id, label }
     }
 }
