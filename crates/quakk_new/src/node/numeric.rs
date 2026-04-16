@@ -1,6 +1,6 @@
 use anyhow::{Context, anyhow};
 
-use crate::{Data, LasyFold, Node, NodeBox, Number, Port, PortDirection, PortLabel};
+use crate::{Data, LasyFold, Node, NodeTrait, Number, Port, PortDirection, PortLabel};
 
 pub enum NumericConstantPorts {
     In,
@@ -39,9 +39,9 @@ pub struct NumericConstant {
     value: Number,
 }
 
-impl Node for NumericConstant {
-    fn init() -> NodeBox {
-        NodeBox::new(Box::new(NumericConstant { value: 2.0 }))
+impl NodeTrait for NumericConstant {
+    fn init() -> Node {
+        Node::new(Box::new(NumericConstant { value: 2.0 }))
     }
 
     fn title(&self) -> &str {
@@ -149,12 +149,12 @@ pub struct Arithmetics {
     term2: Number,
 }
 
-impl Node for Arithmetics {
-    fn init() -> NodeBox
+impl NodeTrait for Arithmetics {
+    fn init() -> Node
     where
         Self: Sized,
     {
-        NodeBox::new(Box::new(Arithmetics {
+        Node::new(Box::new(Arithmetics {
             operation: ArithmeticsOperation::Addition,
             term1: 0.0,
             term2: 0.0,

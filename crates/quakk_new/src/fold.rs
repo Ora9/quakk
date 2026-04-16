@@ -18,7 +18,7 @@ impl LasyFold {
             .lock()
             .expect("the graph has been poisoned, who was it!?");
 
-        let _ = dbg!(graph.vertex_for(self.vertex_id));
+        // let _ = dbg!(graph.vertex_for(self.vertex_id));
 
         unimplemented!()
     }

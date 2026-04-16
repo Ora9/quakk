@@ -7,8 +7,8 @@ pub use id::*;
 mod data;
 pub use data::*;
 
-mod function;
-pub use function::*;
+// mod function;
+// pub use function::*;
 
 mod node;
 pub use node::*;
@@ -55,22 +55,22 @@ impl Quakk {
     }
 
     pub fn fold_for(&self, port_label: impl Into<PortLabel>) -> Result<Data, anyhow::Error> {
-        let (entry_vertex, entry_out_port) = self.graph(|graph| {
-            let main_function = graph.main_function_vertex();
-            let entry_out_port = main_function
-                .inbound_for(port_label)
-                .context("no node is patched to this function port")?;
+        // let (entry_vertex, entry_out_port) = self.graph(|graph| {
+        //     let main_function = graph.main_function_vertex();
+        //     let entry_out_port = main_function
+        //         .inbound_for(port_label)
+        //         .context("no node is patched to this function port")?;
 
-            let entry_vertex = graph
-                .vertex_for(entry_out_port.as_vertex_id())
-                .context("node should exist")?;
+        //     let entry_vertex = graph
+        //         .vertex_for(entry_out_port.as_vertex_id())
+        //         .context("node should exist")?;
 
-            Ok::<_, anyhow::Error>((entry_vertex, entry_out_port))
-        })?;
+        //     Ok::<_, anyhow::Error>((entry_vertex, entry_out_port))
+        // })?;
 
-        let node_handle = entry_vertex
-            .node_handle()
-            .context("function to function not yet handled")?;
+        // let node_handle = entry_vertex
+        //     .node_handle()
+        //     .context("function to function not yet handled")?;
 
         // node_handle.node().fold(
         //     entry_out_port.port_label(),

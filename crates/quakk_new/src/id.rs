@@ -7,10 +7,24 @@ pub enum VertexId {
 }
 
 impl VertexId {
-    pub fn from_port_id(port_id: &PortId) -> Self {
+    pub fn from_port_id(port_id: &VertexPortId) -> Self {
         match port_id {
-            PortId::Node(node_id) => Self::Node(node_id.node_id),
-            PortId::Function(function_id) => Self::Function(function_id.function_id),
+            VertexPortId::Node(node_id) => Self::Node(node_id.node_id),
+            VertexPortId::Function(function_id) => Self::Function(function_id.function_id),
+        }
+    }
+
+    pub fn function_id(&self) -> Option<FunctionId> {
+        match self {
+            VertexId::Function(function_id) => Some(*function_id),
+            _ => None,
+        }
+    }
+
+    pub fn node_id(&self) -> Option<NodeId> {
+        match self {
+            VertexId::Node(node_id) => Some(*node_id),
+            _ => None,
         }
     }
 }
@@ -32,7 +46,8 @@ impl From<NodeId> for VertexId {
 /// Each new node inserted in a [`Graph`] is assigned a new random id
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct NodeId {
-    id: u64,
+    node_id: u64,
+    function_id: FunctionId,
 }
 
 impl NodeId {
@@ -43,10 +58,41 @@ impl NodeId {
     ///
     /// assert_ne!(NodeId::new_random(), NodeId::new_random());
     /// ```
-    pub fn new_random() -> Self {
+    pub fn new_random(function_id: FunctionId) -> Self {
         Self {
-            id: RandomState::new().build_hasher().finish(),
+            node_id: RandomState::new().build_hasher().finish(),
+            function_id,
         }
+    }
+
+    pub(crate) fn zero(function_id: FunctionId) -> Self {
+        Self {
+            node_id: 0,
+            function_id,
+        }
+    }
+
+    pub(crate) fn checked_increment(&self) -> Option<Self> {
+        self.node_id.checked_add(1).map(|node_id| NodeId {
+            node_id,
+            function_id: self.function_id,
+        })
+    }
+
+    pub fn function_id(&self) -> FunctionId {
+        self.function_id
+    }
+
+    pub fn port_id(&self, label: impl Into<PortLabel>) -> VertexPortId {
+        VertexPortId::Node(NodePortId::new(*self, label.into()))
+    }
+
+    pub fn out(&self) -> VertexPortId {
+        self.port_id("out")
+    }
+
+    pub fn r#in(&self) -> VertexPortId {
+        self.port_id("in")
     }
 }
 
@@ -59,6 +105,8 @@ pub struct FunctionId {
 }
 
 impl FunctionId {
+    pub(crate) const ZERO: FunctionId = FunctionId { id: 0 };
+
     /// Return a new random `FunctionId`
     /// ```
     /// # use quakk::FunctionId;
@@ -69,6 +117,15 @@ impl FunctionId {
         Self {
             id: RandomState::new().build_hasher().finish(),
         }
+    }
+
+    pub fn port_id(&self, label: impl Into<PortLabel>) -> VertexPortId {
+        VertexPortId::Function(FunctionPortId::new(*self, label.into()))
+    }
+
+    #[must_use]
+    pub(crate) fn checked_increment(&self) -> Option<Self> {
+        self.id.checked_add(1).map(|id| FunctionId { id })
     }
 }
 
@@ -131,12 +188,12 @@ pub trait Port {
 
 /// Point to either a node port or function port
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum PortId {
+pub enum VertexPortId {
     Node(NodePortId),
     Function(FunctionPortId),
 }
 
-impl PortId {
+impl VertexPortId {
     pub fn port_label(&self) -> PortLabel {
         match self {
             Self::Function(port_id) => port_id.label.clone(),

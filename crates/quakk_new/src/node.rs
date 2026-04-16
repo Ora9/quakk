@@ -7,13 +7,13 @@ use crate::{Data, LasyFold, PortLabel};
 pub mod numeric;
 
 #[derive(Debug)]
-pub struct NodeBox {
-    inner: Box<dyn Node>,
+pub struct Node {
+    inner: Box<dyn NodeTrait>,
 }
 
-impl NodeBox {
-    pub fn new(node: Box<dyn Node>) -> Self {
-        NodeBox { inner: node }
+impl Node {
+    pub fn new(node: Box<dyn NodeTrait>) -> Self {
+        Node { inner: node }
     }
 
     pub fn mutate(
@@ -36,8 +36,8 @@ impl NodeBox {
     }
 }
 
-pub trait Node: Debug {
-    fn init() -> NodeBox
+pub trait NodeTrait: Debug {
+    fn init() -> Node
     where
         Self: Sized;
 
