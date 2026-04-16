@@ -4,7 +4,7 @@ use gpui::{
 use gpui::{FocusHandle, prelude::*};
 use gpui_component::menu::DropdownMenu;
 use gpui_component::{
-    Root, WindowExt,
+    Root,
     button::{Button, ButtonVariants},
     h_flex,
     menu::PopupMenuItem,
@@ -32,7 +32,7 @@ impl QuakkApp {
     pub const APP_TITLE: &'static str = "Quakk";
     pub const APP_ID: &'static str = "quakk";
 
-    fn show_about(&mut self, _: &ShowAbout, window: &mut Window, cx: &mut Context<Self>) {
+    fn show_about(&mut self, _: &ShowAbout, _window: &mut Window, _cx: &mut Context<Self>) {
         dbg!("about");
     }
 
@@ -79,11 +79,11 @@ impl Render for QuakkApp {
                         Button::new("menu_bar_quakk")
                             .label(Self::APP_TITLE)
                             .ghost()
-                            .dropdown_menu(move |menu, window, cx| {
+                            .dropdown_menu(move |menu, window, _cx| {
                                 menu.link("Github", "https://github.com/Ora9/quakk").item(
                                     PopupMenuItem::new("About").on_click(window.listener_for(
                                         &view,
-                                        |this, _, window: &mut Window, cx| {
+                                        |_this, _, _window: &mut Window, _cx| {
                                             dbg!("about!");
                                         },
                                     )),
@@ -92,7 +92,7 @@ impl Render for QuakkApp {
                     ),
                 ),
             )
-            .child(cx.new(|ctx| GraphView { text: "AHH".into() }))
+            .child(cx.new(|_ctx| GraphView { text: "AHH".into() }))
             .children(Root::render_dialog_layer(window, cx))
             .children(Root::render_sheet_layer(window, cx))
     }

@@ -1,6 +1,5 @@
-use anyhow::bail;
 use quakk::{
-    Node, NodeBox, Number, Quakk,
+    Node, Quakk,
     numeric::{Arithmetics, ArithmeticsOperation, NumericConstant},
 };
 
@@ -18,14 +17,14 @@ fn main() -> Result<(), anyhow::Error> {
         let add = graph
             .insert_node(Arithmetics::init().mutate("operation", ArithmeticsOperation::Addition)?);
 
-        graph.patch(number_a.out(), mult.port_id("term1"));
-        graph.patch(number_b.out(), mult.port_id("term2"));
-        graph.patch(mult.out(), add.port_id("term1"));
-        graph.patch(number_c.out(), add.port_id("term2"));
+        let _ = graph.patch(number_a.out(), mult.port_id("term1"));
+        let _ = graph.patch(number_b.out(), mult.port_id("term2"));
+        let _ = graph.patch(mult.out(), add.port_id("term1"));
+        let _ = graph.patch(number_c.out(), add.port_id("term2"));
 
         let number_out = graph.main_function_handle().port_id("number_out");
 
-        graph.patch(add.port_id("out"), number_out);
+        let _ = graph.patch(add.port_id("out"), number_out);
 
         // dbg!(&graph);
 
@@ -49,7 +48,7 @@ fn main() -> Result<(), anyhow::Error> {
         Ok::<(), anyhow::Error>(())
     })?;
 
-    qk.fold_for("number_out");
+    let _ = qk.fold_for("number_out");
     // dbg!(qk.fold_for("number_out").unwrap());
 
     Ok(())

@@ -37,7 +37,7 @@ impl Quakk {
     }
 
     pub fn graph<R>(&self, reader: impl FnOnce(&Graph) -> R) -> R {
-        let mut graph = self
+        let graph = self
             .graph
             .lock()
             .expect("the graph has been poisoned, who was it ?!");

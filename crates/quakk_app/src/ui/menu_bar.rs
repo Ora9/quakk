@@ -21,7 +21,7 @@ impl MenuBar {
 }
 
 impl RenderOnce for MenuBar {
-    fn render(self, window: &mut gpui::Window, cx: &mut gpui::App) -> impl IntoElement {
+    fn render(self, _window: &mut gpui::Window, cx: &mut gpui::App) -> impl IntoElement {
         div().flex_shrink_0().child(
             div()
                 .id("title_bar")

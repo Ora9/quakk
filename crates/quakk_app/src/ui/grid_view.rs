@@ -6,7 +6,7 @@ pub struct GraphView {
 }
 
 impl Render for GraphView {
-    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, _cxx: &mut Context<Self>) -> impl IntoElement {
         div()
             .size_full()
             .flex()

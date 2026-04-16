@@ -12,13 +12,13 @@ impl LasyFold {
         Self { vertex_id, graph }
     }
 
-    pub fn get_in(&self, port_label: impl Into<PortLabel>) -> Result<Data, anyhow::Error> {
+    pub fn get_in(&self, _port_label: impl Into<PortLabel>) -> Result<Data, anyhow::Error> {
         let graph = self
             .graph
             .lock()
             .expect("the graph has been poisoned, who was it!?");
 
-        dbg!(graph.vertex_for(self.vertex_id));
+        let _ = dbg!(graph.vertex_for(self.vertex_id));
 
         unimplemented!()
     }

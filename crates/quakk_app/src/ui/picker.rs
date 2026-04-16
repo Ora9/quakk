@@ -1,5 +1,5 @@
+use gpui::Window;
 use gpui::{Action, App, Entity, FocusHandle, Length, SharedString, prelude::*, rems};
-use gpui::{Window, div};
 use gpui_component::input::InputState;
 use gpui_component::v_flex;
 
@@ -59,7 +59,7 @@ impl Picker {
 }
 
 impl Render for Picker {
-    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
         v_flex().w(rems(34.)).child(self.input_state.clone())
     }
 }

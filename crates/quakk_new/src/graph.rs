@@ -1,10 +1,89 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    rc::Rc,
+};
 
 use anyhow::{Context, anyhow};
 
 use crate::{
-    Function, FunctionHandle, FunctionId, NodeBox, NodeHandle, NodeId, PortId, PortLabel, VertexId,
+    Function, FunctionId, FunctionPortId, NodeBox, NodeId, NodePortId, PortId, PortLabel, VertexId,
 };
+
+#[derive(Debug)]
+pub struct NodeHandle {
+    id: NodeId,
+    node: Rc<NodeBox>,
+}
+
+impl Clone for NodeHandle {
+    fn clone(&self) -> Self {
+        NodeHandle {
+            id: self.id,
+            node: self.node.clone(),
+        }
+    }
+}
+
+impl NodeHandle {
+    pub(crate) fn new(node_id: NodeId, node: NodeBox) -> Self {
+        Self {
+            id: node_id,
+            node: Rc::new(node),
+        }
+    }
+
+    pub fn node_id(&self) -> NodeId {
+        self.id
+    }
+
+    pub fn node(&self) -> Rc<NodeBox> {
+        self.node.clone()
+    }
+
+    pub fn port_id(&self, label: impl Into<PortLabel>) -> PortId {
+        PortId::Node(NodePortId::new(self.id, label.into()))
+    }
+
+    pub fn out(&self) -> PortId {
+        self.port_id("out")
+    }
+
+    pub fn r#in(&self) -> PortId {
+        self.port_id("in")
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct FunctionHandle {
+    id: FunctionId,
+    function: Function,
+}
+
+impl FunctionHandle {
+    pub fn new(function_id: FunctionId, function: Function) -> FunctionHandle {
+        FunctionHandle {
+            id: function_id,
+            function,
+        }
+    }
+
+    pub fn id(&self) -> FunctionId {
+        self.id
+    }
+
+    pub fn function(&self) -> Function {
+        self.function.clone()
+    }
+
+    pub fn port_id(&self, label: impl Into<PortLabel>) -> PortId {
+        PortId::Function(FunctionPortId::new(self.id, label.into()))
+    }
+
+    // fn fold_for(&self, graph: Graph, label: impl Into<PortLabel>) -> Result<DataBox, anyhow::Error> {
+
+    //     self.function.
+    // }
+}
 
 #[derive(Debug, Clone)]
 enum VertexInner {

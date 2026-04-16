@@ -1,6 +1,6 @@
-use anyhow::{Context, anyhow, bail};
+use anyhow::{Context, anyhow};
 
-use crate::{Data, LasyFold, Node, NodeBox, Number, Port, PortDirection, PortId, PortLabel};
+use crate::{Data, LasyFold, Node, NodeBox, Number, Port, PortDirection, PortLabel};
 
 pub enum NumericConstantPorts {
     In,
@@ -61,7 +61,7 @@ impl Node for NumericConstant {
         }
     }
 
-    fn fold(&mut self, port_out: PortLabel, lasy_fold: LasyFold) -> Result<Data, anyhow::Error> {
+    fn fold(&mut self, _port_out: PortLabel, _lasy_fold: LasyFold) -> Result<Data, anyhow::Error> {
         Err(anyhow!("ho that's unimplemented"))
     }
 }
@@ -194,7 +194,7 @@ impl Node for Arithmetics {
             return Err(anyhow!("no a valid output port"));
         }
 
-        self.mutate("term1".into(), lasy_fold.get_in("term1")?);
+        let _ = self.mutate("term1".into(), lasy_fold.get_in("term1")?);
 
         dbg!(self);
 
