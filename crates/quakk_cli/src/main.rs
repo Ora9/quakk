@@ -18,10 +18,10 @@ fn main() -> Result<(), anyhow::Error> {
             Arithmetics::init().mutate("operation", ArithmeticsOperation::Addition)?,
         );
 
-        // let _ = graph.patch(number_a.out(), mult.port_id("term1"));
-        // let _ = graph.patch(number_b.out(), mult.port_id("term2"));
-        // let _ = graph.patch(mult.out(), add.port_id("term1"));
-        // let _ = graph.patch(number_c.out(), add.port_id("term2"));
+        let _ = graph.patch(main_num_a.out(), main_mult.port_id("term1"));
+        let _ = graph.patch(main_num_b.out(), main_mult.port_id("term2"));
+        let _ = graph.patch(main_mult.out(), main_add.port_id("term1"));
+        let _ = graph.patch(main_num_c.out(), main_add.port_id("term2"));
 
         let patate = graph.insert_function(Function::new("patate", 88));
 
@@ -33,10 +33,10 @@ fn main() -> Result<(), anyhow::Error> {
             Arithmetics::init().mutate("operation", ArithmeticsOperation::Addition)?,
         );
         let main_number_out = graph.main_function_id().port_id("number_out");
-
-        let _ = graph.patch(patate_num_a.out(), patate_add.port_id("term1"));
-        let _ = graph.patch(patate_add.out(), main_number_out.clone());
         let _ = graph.patch(main_add.port_id("out"), main_number_out);
+
+        // let _ = graph.patch(patate_num_a.out(), patate_add.port_id("term1"));
+        // let _ = graph.patch(patate_add.out(), main_number_out.clone());
 
         dbg!(&graph);
 
