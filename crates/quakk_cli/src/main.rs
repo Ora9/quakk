@@ -38,7 +38,7 @@ fn main() -> Result<(), anyhow::Error> {
         let _ = graph.patch(patate_add.out(), main_number_out.clone());
         let _ = graph.patch(main_add.port_id("out"), main_number_out);
 
-        // dbg!(&graph);
+        dbg!(&graph);
 
         //     let textconst = graph.insert(Box::new(TextConstant::new("Hello World!".to_string())));
         //     let textsplit = graph.insert(Box::new(TextSplit::default()));

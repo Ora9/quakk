@@ -156,7 +156,7 @@ pub trait Port {
     fn direction(&self) -> PortDirection;
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PortId {
     Node(NodePortId),
     Function(FunctionPortId),
@@ -167,6 +167,13 @@ impl PortId {
         match self {
             Self::Node(node_port_id) => node_port_id.id().function_id(),
             Self::Function(function_port_id) => function_port_id.function_id(),
+        }
+    }
+
+    pub fn port_label(&self) -> &PortLabel {
+        match self {
+            Self::Node(node_port_id) => node_port_id.label(),
+            Self::Function(function_port_id) => function_port_id.label(),
         }
     }
 
