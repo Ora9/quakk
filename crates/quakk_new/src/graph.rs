@@ -158,6 +158,10 @@ impl Function {
         }
     }
 
+    fn default(function_id: FunctionId) -> Self {
+        Self::new(&format!("Function-{}", function_id.as_u64()), 0)
+    }
+
     fn next_node_id(&mut self, function_id: FunctionId) -> NodeId {
         let next_node_id = self
             .last_node_id
@@ -230,8 +234,7 @@ impl Graph {
         let main_function_id = self.main_function_id();
         // let main_function = self.main_function_mut();
 
-        self.insert_into(main_function_id, node)
-            .expect("should always be able to insert into main_function")
+        self.insert_in(main_function_id, node)
 
         // let node_id = main_function.next_node_id(main_function_id);
         // main_function.insert(node_id, node);
@@ -247,14 +250,15 @@ impl Graph {
     ) -> Result<NodeId, anyhow::Error> {
         let function = self
             .functions
-            .get_mut(&function_id)
-            .context("this function could not be found")?;
+            .entry(function_id)
+            .or_insert(Function::default(function_id));
+        // .context("this function could not be found")?;
 
         let node_id = function.next_node_id(function_id);
 
         function.insert(node_id, node);
 
-        Ok(node_id)
+        node_id
     }
 
     pub fn insert_function(&mut self, function: Function) -> FunctionId {
