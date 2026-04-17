@@ -1,15 +1,15 @@
 use std::{rc::Rc, sync::Mutex};
 
-use crate::{Data, Graph, PortLabel, VertexId};
+use crate::{Data, Graph, NodeId, PortLabel};
 
 pub struct LasyFold {
-    vertex_id: VertexId,
+    node_id: NodeId,
     graph: Rc<Mutex<Graph>>,
 }
 
 impl LasyFold {
-    pub fn new(vertex_id: VertexId, graph: Rc<Mutex<Graph>>) -> Self {
-        Self { vertex_id, graph }
+    pub fn new(node_id: NodeId, graph: Rc<Mutex<Graph>>) -> Self {
+        Self { node_id, graph }
     }
 
     pub fn get_in(&self, _port_label: impl Into<PortLabel>) -> Result<Data, anyhow::Error> {

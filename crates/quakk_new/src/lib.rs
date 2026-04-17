@@ -1,7 +1,6 @@
 use std::{rc::Rc, sync::Mutex};
 
 mod id;
-use anyhow::Context;
 pub use id::*;
 
 mod data;

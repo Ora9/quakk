@@ -1,11 +1,8 @@
-use std::{
-    collections::{HashMap, HashSet},
-    rc::Rc,
-};
+use std::collections::{HashMap, HashSet};
 
-use anyhow::{Context, anyhow};
+use anyhow::Context;
 
-use crate::{FunctionId, Node, NodeId, PortLabel, VertexId, VertexPortId};
+use crate::{FunctionId, Node, NodeId, PortId, PortLabel};
 
 // #[derive(Debug)]
 // pub struct NodeHandle {
@@ -92,8 +89,8 @@ use crate::{FunctionId, Node, NodeId, PortLabel, VertexId, VertexPortId};
 pub struct Vertex {
     node: Node,
 
-    inbound: HashMap<PortLabel, VertexPortId>,
-    outbound: HashMap<PortLabel, HashSet<VertexPortId>>,
+    inbound: HashMap<PortLabel, PortId>,
+    outbound: HashMap<PortLabel, HashSet<PortId>>,
 }
 
 impl Vertex {
@@ -132,11 +129,11 @@ impl Vertex {
     //     }
     // }
 
-    pub fn outbound_for(&self, port_label: impl Into<PortLabel>) -> Option<HashSet<VertexPortId>> {
+    pub fn outbound_for(&self, port_label: impl Into<PortLabel>) -> Option<HashSet<PortId>> {
         self.outbound.get(&port_label.into()).cloned()
     }
 
-    pub fn inbound_for(&self, port_label: impl Into<PortLabel>) -> Option<VertexPortId> {
+    pub fn inbound_for(&self, port_label: impl Into<PortLabel>) -> Option<PortId> {
         self.inbound.get(&port_label.into()).cloned()
     }
 }
@@ -270,11 +267,11 @@ impl Graph {
 
     pub fn patch(
         &mut self,
-        port_out: VertexPortId,
-        port_in: VertexPortId,
+        port_out: impl Into<PortId>,
+        port_in: impl Into<PortId>,
     ) -> Result<(), anyhow::Error> {
-        let vertex_out = VertexId::from_port_id(&port_out);
-        let vertex_in = VertexId::from_port_id(&port_in);
+        // let vertex_out = VertexId::from_port_id(&port_out);
+        // let vertex_in = VertexId::from_port_id(&port_in);
 
         // self.vertices
         //     .get_mut(&vertex_out)
