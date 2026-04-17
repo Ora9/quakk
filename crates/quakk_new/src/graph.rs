@@ -1,8 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
-use anyhow::Context;
+use anyhow::{Context, Ok, anyhow, bail};
 
-use crate::{FunctionId, Node, NodeId, PortId, PortLabel};
+use crate::{FunctionId, Node, NodeId, NodePortId, Port, PortId, PortLabel};
 
 // #[derive(Debug)]
 // pub struct NodeHandle {
@@ -182,8 +182,12 @@ impl Function {
         }
     }
 
-    fn insert(&mut self, node_id: NodeId, node: Node) {
+    fn insert_node(&mut self, node_id: NodeId, node: Node) {
         self.nodes.insert(node_id, Vertex::new(node));
+    }
+
+    pub fn patch(&mut self, port_out: PortId, port_in: PortId) {
+        dbg!(port_out, port_in);
     }
 }
 
@@ -229,7 +233,7 @@ impl Graph {
     }
 
     /// Insert the given node in the main function
-    pub fn insert(&mut self, node: Node) -> NodeId {
+    pub fn insert_in_main(&mut self, node: Node) -> NodeId {
         // let node_id = NodeId::new_random(self.main_function_id());
         let main_function_id = self.main_function_id();
         // let main_function = self.main_function_mut();
@@ -243,11 +247,7 @@ impl Graph {
     }
 
     /// Insert the given node into the specified function
-    pub fn insert_into(
-        &mut self,
-        function_id: FunctionId,
-        node: Node,
-    ) -> Result<NodeId, anyhow::Error> {
+    pub fn insert_in(&mut self, function_id: FunctionId, node: Node) -> NodeId {
         let function = self
             .functions
             .entry(function_id)
@@ -256,7 +256,7 @@ impl Graph {
 
         let node_id = function.next_node_id(function_id);
 
-        function.insert(node_id, node);
+        function.insert_node(node_id, node);
 
         node_id
     }
@@ -274,6 +274,21 @@ impl Graph {
         port_out: impl Into<PortId>,
         port_in: impl Into<PortId>,
     ) -> Result<(), anyhow::Error> {
+        let port_in: PortId = port_in.into();
+        let port_out: PortId = port_out.into();
+
+        let function_id = port_in.function_id();
+        if port_out.function_id() != port_in.function_id() {
+            bail!("can't patch in two different function");
+        }
+
+        let function = self
+            .functions
+            .get_mut(&function_id)
+            .context("given nodes doesn't reside in an existing function")?;
+
+        function.patch(port_out, port_in);
+
         // let vertex_out = VertexId::from_port_id(&port_out);
         // let vertex_in = VertexId::from_port_id(&port_in);
 

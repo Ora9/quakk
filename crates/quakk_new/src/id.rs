@@ -123,6 +123,10 @@ impl FunctionId {
     //     }
     // }
 
+    pub fn as_u64(&self) -> u64 {
+        self.id
+    }
+
     #[must_use]
     pub(crate) fn checked_increment(&self) -> Option<Self> {
         self.id.checked_add(1).map(|id| FunctionId { id })
@@ -243,6 +247,23 @@ pub enum PortId {
     Function(FunctionPortId),
 }
 
+impl PortId {
+    pub fn function_id(&self) -> FunctionId {
+        match self {
+            Self::Node(node_port_id) => node_port_id.id().function_id(),
+            Self::Function(function_port_id) => function_port_id.function_id(),
+        }
+    }
+
+    pub fn is_node(&self) -> bool {
+        matches!(*self, Self::Node(_))
+    }
+
+    pub fn is_function(&self) -> bool {
+        matches!(*self, Self::Function(_))
+    }
+}
+
 impl From<FunctionPortId> for PortId {
     fn from(v: FunctionPortId) -> Self {
         Self::Function(v)
@@ -266,7 +287,7 @@ impl NodePortId {
         Self { id: node_id, label }
     }
 
-    pub fn node_id(&self) -> NodeId {
+    pub fn id(&self) -> NodeId {
         self.id
     }
 

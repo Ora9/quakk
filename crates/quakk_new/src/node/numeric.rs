@@ -51,7 +51,6 @@ impl NodeTrait for NumericConstant {
     fn mutate(&mut self, port_label: PortLabel, value: Data) -> Result<(), anyhow::Error> {
         let port = NumericConstantPorts::from_label(port_label).context("not a valid port")?;
 
-        dbg!(&value);
         match port {
             NumericConstantPorts::In => {
                 self.value = value.into_number().context("while trying to mutate")?;
