@@ -2,43 +2,69 @@ use std::{any::Any, fmt::Debug};
 
 use anyhow::anyhow;
 
-pub trait DataType: Any + Debug {}
+#[derive(Debug)]
+pub struct DataTypeDefinition {
+    pub title: String,
+    pub color: u32,
+}
 
-impl<T> DataType for T where T: Any + Debug {}
+pub trait DataTrait: Any + Debug {
+    fn type_definition(&self) -> DataTypeDefinition;
+}
 
 pub struct Data {
-    inner: Box<dyn DataType>,
+    inner: Box<dyn DataTrait>,
+    definition: DataTypeDefinition,
 }
 
 impl Data {
-    pub fn new(value: impl DataType) -> Self {
+    pub fn new(value: impl DataTrait) -> Self {
         Data {
+            definition: value.type_definition(),
+
             inner: Box::new(value),
         }
     }
 
-    pub fn into_f32(self) -> Result<f32, anyhow::Error> {
-        self.downcast::<f32>().ok_or(anyhow!("not an f32"))
+    pub fn into_number(self) -> Result<Number, anyhow::Error> {
+        self.downcast::<Number>().ok_or(anyhow!("not a number"))
     }
 
-    pub fn into_string(self) -> Result<String, anyhow::Error> {
-        self.downcast::<String>().ok_or(anyhow!("not an f32"))
-    }
-
-    pub fn downcast<T: DataType>(self) -> Option<T> {
+    pub fn downcast<T: DataTrait>(self) -> Option<T> {
         (self.inner as Box<dyn Any>)
             .downcast::<T>()
             .ok()
             .map(|data| *data)
     }
 
-    pub fn downcast_ref<T: DataType>(&self) -> Option<&T> {
+    pub fn downcast_ref<T: DataTrait>(&self) -> Option<&T> {
         ((&*self.inner) as &dyn Any).downcast_ref::<T>()
     }
 }
 
 impl Debug for Data {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Data: {:?}", self.inner)
+        if f.alternate() {
+            write!(f, "{}({:?})", self.definition.title, self.inner)
+        } else {
+            write!(f, "{:?}", self.inner)
+        }
+    }
+}
+
+pub type Number = f64;
+
+impl From<Number> for Data {
+    fn from(value: Number) -> Self {
+        Data::new(value)
+    }
+}
+
+impl DataTrait for Number {
+    fn type_definition(&self) -> DataTypeDefinition {
+        DataTypeDefinition {
+            title: "Number".to_string(),
+            color: 55,
+        }
     }
 }

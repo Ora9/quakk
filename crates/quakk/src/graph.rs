@@ -1,469 +1,206 @@
-use anyhow::{anyhow, Context, Ok};
-use std::{
-    any::{self, Any},
-    collections::{HashMap, HashSet},
-    fmt::Debug,
-    ops::Sub,
-    rc::Rc,
-    sync::{Arc, Mutex},
-};
+use std::collections::{HashMap, HashSet};
 
-use crate::{
-    id::{InId, InoutId, NodeId, NodeInId, NodeInoutId, NodeOutId, OutId},
-    numeric::{ArithmeticsIn, NumericConstantOut},
-    Data, LasyFold, Meta, Node,
-};
+use anyhow::{Context, Ok, bail};
 
-/// `NodeHandle` is a cheaply cloned reference to a node
-///
-/// This struct is returned when inserting a [`Node`] into a [`Graph`]
-///
-/// It contain the node with the id it has been given
-#[derive(Debug, Clone)]
-pub struct NodeHandle {
-    id: NodeId,
-    node: Rc<Box<dyn Node>>,
-}
+use crate::{FunctionId, Node, NodeId, PortId, PortLabel};
 
-impl NodeHandle {
-    /// Given a [`Node`] and its [`NodeId`], return a new `NodeHandle`,
-    /// this is not destined to be called by users, but by the [`Graph`] when
-    /// inserting a new node
-    fn new(node_id: NodeId, node: Box<dyn Node>) -> Self {
-        Self {
-            id: node_id,
-            node: Rc::new(node),
-        }
-    }
-
-    /// Return the [`NodeId`] given by the [`Graph`]
-    pub fn node_id(&self) -> NodeId {
-        self.id
-    }
-
-    /// Return a reference to the contained [`Node`]
-    pub fn node(&self) -> Rc<Box<dyn Node>> {
-        self.node.clone()
-    }
-
-    /// Return a [`NodeInId`]
-    pub fn node_in_id(&self, in_id: &dyn InId) -> NodeInId {
-        NodeInId::new(self.id, in_id)
-    }
-
-    pub fn node_out_id(&self, out_id: &dyn OutId) -> NodeOutId {
-        NodeOutId::new(self.id, out_id)
-    }
-
-    // /// Given a string identifier, will return an [`InoutId`] if the node recognise
-    // /// it as a valid in/out name
-    // ///
-    // /// The format and convention around said identifier is not formalised yet,
-    // /// but will be eventually
-    // pub fn id_for(&self, inout_name: &str) -> Option<NodeInoutId> {
-    //     self.node.node_inout_id_for(inout_name, self.id)
-    // }
-    // pub fn node_in_id(&self, in_id: &dyn InId) -> Option<NodeInId> {
-    //     self.node().node_in_id(in_id, self.node_id())
-    // }
-
-    // pub fn node_out_id(&self, out_id: &dyn OutId) -> Option<NodeOutId> {
-    //     self.node().node_out_id(out_id, self.node_id())
-    // }
-}
-
-/// `Vertex` is an item in the graph, it holds a [`NodeHandle`], and keep track of all
-/// inbound and outbound connection of the node
 #[derive(Debug)]
-pub(crate) struct Vertex {
-    node_handle: NodeHandle,
+pub struct Vertex {
+    node: Node,
 
-    inbound: HashMap<Box<dyn InId>, NodeOutId>,
-    outbound: HashMap<Box<dyn OutId>, HashSet<NodeInId>>,
+    inbound: HashMap<PortLabel, PortId>,
+    outbound: HashMap<PortLabel, HashSet<PortId>>,
 }
 
 impl Vertex {
-    fn new(node_handle: NodeHandle) -> Self {
+    fn new(node: Node) -> Self {
         Self {
-            node_handle,
-
+            node,
             inbound: HashMap::new(),
             outbound: HashMap::new(),
         }
     }
 
-    pub fn inbound_for(&self, in_id: &dyn InId) -> Option<&NodeOutId> {
-        self.inbound.get(&dyn_clone::clone_box(in_id))
+    pub fn outbound_for(&self, port_label: impl Into<PortLabel>) -> Option<HashSet<PortId>> {
+        self.outbound.get(&port_label.into()).cloned()
     }
 
-    pub fn outbound_for(&self, out_id: &dyn OutId) -> Option<&HashSet<NodeInId>> {
-        self.outbound.get(&dyn_clone::clone_box(out_id))
+    pub fn inbound_for(&self, port_label: impl Into<PortLabel>) -> Option<PortId> {
+        self.inbound.get(&port_label.into()).cloned()
     }
 }
 
-/// A `Graph` hold nodes and handle all connections (patches)
+#[derive(Debug)]
+pub struct Function {
+    pub name: String,
+    pub color: u32,
+
+    nodes: HashMap<NodeId, Vertex>,
+    last_node_id: Option<NodeId>,
+}
+
+impl Function {
+    pub fn new(name: &str, color: u32) -> Self {
+        Self {
+            name: name.to_string(),
+            color,
+
+            nodes: HashMap::new(),
+            last_node_id: None,
+        }
+    }
+
+    fn default(function_id: FunctionId) -> Self {
+        Self::new(&format!("Function-{}", function_id.as_u64()), 0)
+    }
+
+    fn next_node_id(&mut self, function_id: FunctionId) -> NodeId {
+        let next_node_id = self
+            .last_node_id
+            .unwrap_or(NodeId::zero(function_id))
+            .checked_increment()
+            .expect("node_id has overflown: too much nodes");
+
+        self.last_node_id = Some(next_node_id);
+
+        if !self.nodes.contains_key(&next_node_id) {
+            next_node_id
+        } else {
+            eprintln!(
+                "failed attempt to create a new id in function #{:?} (id already exists), retrying",
+                function_id
+            );
+            self.next_node_id(function_id)
+        }
+    }
+
+    fn insert_node(&mut self, node_id: NodeId, node: Node) {
+        self.nodes.insert(node_id, Vertex::new(node));
+    }
+
+    pub fn patch(&mut self, port_out: PortId, port_in: PortId) {
+        dbg!(port_out, port_in);
+    }
+}
+
+/// A `Graph` hold nodes and handle patches (connection between nodes)
 #[derive(Debug)]
 pub struct Graph {
-    vertices: HashMap<NodeId, Vertex>,
+    functions: HashMap<FunctionId, Function>,
+    main_function_id: Option<FunctionId>,
+    last_function_id: Option<FunctionId>,
 }
 
-/// # Graph creation
 impl Graph {
-    /// Return a new and initialized graph, holding two specials [`Node`]s :
-    /// `GraphIn` and `GraphOut`
+    /// Create a new and initialized graph, only holding a main function
     pub fn new() -> Self {
-        let mut graph = Self {
-            vertices: HashMap::with_capacity(2),
+        let mut graph = Graph {
+            functions: HashMap::new(),
+            main_function_id: None,
+            last_function_id: None,
         };
 
-        graph.insert_with_id(Box::new(GraphIn::new()), NodeId::GraphIn);
-        graph.insert_with_id(Box::new(GraphOut::new()), NodeId::GraphOut);
+        let main = Function::new("Main", 55);
+        graph.main_function_id = Some(graph.insert_function(main));
 
         graph
     }
-}
 
-/// # Node insertion / removal
-impl Graph {
-    /// Insert a boxed [`Node`] into the graph with the given [`NodeId`], then
-    /// return a [`NodeHandle`]
-    pub fn insert_with_id(&mut self, node: Box<dyn Node>, node_id: NodeId) -> NodeHandle {
-        let node_handle = NodeHandle::new(node_id, node);
-        self.vertices
-            .insert(node_id, Vertex::new(node_handle.clone()));
+    fn next_function_id(&mut self) -> FunctionId {
+        let next_function_id = self
+            .last_function_id
+            .unwrap_or(FunctionId::ZERO)
+            .checked_increment()
+            .expect("function_id has overflown: too much functions");
 
-        node_handle
-    }
+        self.last_function_id = Some(next_function_id);
 
-    /// Insert a boxed [`Node`] into the graph, giving it a new random id, then
-    /// return a [`NodeHandle`]
-    pub fn insert(&mut self, node: Box<dyn Node>) -> NodeHandle {
-        let node_id = NodeId::new_node();
-        self.insert_with_id(node, node_id)
-    }
-
-    /// Remove a [`Node`] given its [`NodeId`]
-    pub fn remove(&mut self, node_id: NodeId) -> Result<(), anyhow::Error> {
-        match node_id {
-            NodeId::GraphIn | NodeId::GraphOut => Err(anyhow!("Cannot remove the graph in or out")),
-            _ => {
-                self.vertices.remove(&node_id);
-                Ok(())
-            }
+        if !self.functions.contains_key(&next_function_id) {
+            next_function_id
+        } else {
+            eprintln!("failed attempt to create a new id the graph (id already exists), retrying");
+            self.next_function_id()
         }
     }
 
-    /// Does the graph contain a [`Node`] with the given [`NodeId`]
-    pub fn contains(&self, key: &NodeId) -> bool {
-        self.vertices.contains_key(key)
+    /// Insert the given node in the main function
+    pub fn insert_in_main(&mut self, node: Node) -> NodeId {
+        let main_function_id = self.main_function_id();
+
+        self.insert_in(main_function_id, node)
     }
 
-    pub fn handle_for_id(&self, node_id: NodeId) -> Option<NodeHandle> {
-        self.vertices
-            .get(&node_id)
-            .map(|vertex| vertex.node_handle.clone())
+    /// Insert the given node into the specified function, or create the function if it does not exists
+    pub fn insert_in(&mut self, function_id: FunctionId, node: Node) -> NodeId {
+        let function = self
+            .functions
+            .entry(function_id)
+            .or_insert(Function::default(function_id));
+
+        let node_id = function.next_node_id(function_id);
+
+        function.insert_node(node_id, node);
+
+        node_id
     }
 
-    pub(crate) fn vertex_for_id(&self, node_id: NodeId) -> Option<&Vertex> {
-        self.vertices.get(&node_id)
+    pub fn insert_function(&mut self, function: Function) -> FunctionId {
+        let function_id = self.next_function_id();
+
+        self.functions.insert(function_id, function);
+
+        function_id
     }
 
-    pub fn graph_in_handle(&self) -> NodeHandle {
-        self.handle_for_id(NodeId::GraphIn)
-            .expect("A graph must always have a `GraphIn` node")
-    }
-
-    pub fn graph_out_handle(&self) -> NodeHandle {
-        self.handle_for_id(NodeId::GraphOut)
-            .expect("A graph must always have a `GraphOut` node")
-    }
-
-    pub fn graph_out_in_id(&self, in_id: &dyn InId) -> NodeInId {
-        self.graph_out_handle().node_in_id(in_id)
-    }
-
-    pub fn graph_in_out_id(&self, out_id: &dyn OutId) -> NodeOutId {
-        self.graph_in_handle().node_out_id(out_id)
-    }
-}
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-
-//     #[test]
-//     fn graph_insertion_and_removal() {
-//         let mut graph = Graph::new();
-
-//         let number_handle = graph.insert(Box::new(Number::new()));
-//         assert!(graph.contains(&number_handle.id));
-//         graph.remove(number_handle.id);
-//         assert!(!graph.contains(&number_handle.id));
-//     }
-
-//     #[test]
-//     fn graph_initialized_with_inout() {}
-// }
-
-/// # Graph patching
-impl Graph {
     pub fn patch(
         &mut self,
-        node_out_id: NodeOutId,
-        node_in_id: NodeInId,
+        port_out: impl Into<PortId>,
+        port_in: impl Into<PortId>,
     ) -> Result<(), anyhow::Error> {
-        self.vertices
-            .get_mut(&node_out_id.node_id())
-            .context("The given `out` node does not exists")?
-            .outbound
-            .entry(node_out_id.clone().out_id())
-            .or_default()
-            .insert(node_in_id.clone());
+        let port_in: PortId = port_in.into();
+        let port_out: PortId = port_out.into();
 
-        self.vertices
-            .get_mut(&node_in_id.node_id())
-            .context("The given `in` node does not exists")?
-            .inbound
-            .insert(node_in_id.in_id(), node_out_id);
-
-        Ok(())
-    }
-
-    pub fn unpatch(
-        &mut self,
-        node_out_id: NodeOutId,
-        node_in_id: NodeInId,
-    ) -> Result<(), anyhow::Error> {
-        self.vertices
-            .get_mut(&node_out_id.node_id())
-            .context("The given `out` node does not exists")?
-            .outbound
-            .entry(node_out_id.out_id())
-            .or_default()
-            .remove(&node_in_id);
-
-        self.vertices
-            .get_mut(&node_in_id.node_id())
-            .context("The given `in` node does not exists")?
-            .inbound
-            .remove(&node_in_id.in_id());
-
-        Ok(())
-    }
-
-    pub fn unpatch_inout(&mut self, _inout_id: NodeInoutId) -> Result<(), anyhow::Error> {
-        Ok(())
-    }
-
-    // unpatch node
-    // unpatch nodes
-}
-
-#[derive(Debug, Default)]
-pub struct GraphIn;
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum GraphInOutId {
-    Numeric,
-}
-
-impl OutId for GraphInOutId {}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum GraphInInId {
-    Numeric,
-}
-
-impl InId for GraphInOutId {}
-
-impl GraphIn {
-    pub fn new() -> Self {
-        Self
-    }
-}
-
-impl Node for GraphIn {
-    fn initialize() -> Self {
-        Self
-    }
-
-    // fn id_for(&self, inout_name: &str) -> Option<InoutId> {
-    //     match inout_name {
-    //         "numeric" => Some(InoutId::new_out_from("number_in")),
-    //         _ => None,
-    //     }
-    // }
-
-    fn title(&self) -> &str {
-        "GraphIn"
-    }
-
-    fn fold(&self, out_id: &dyn OutId, _lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<Data> {
-        dbg!(self.title());
-
-        dbg!(out_id);
-        dbg!(meta);
-
-        Ok(Data::new(f32::default()))
-    }
-
-    // fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-    //     None
-    // }
-
-    // fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-    //     out_id
-    //         .as_any()
-    //         .downcast_ref::<GraphInOutId>()
-    //         .map(|out_id| NodeOutId::new(node_id, out_id))
-    // }
-}
-
-#[derive(Debug, Default)]
-pub struct GraphOut;
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum GraphOutIn {
-    Numeric,
-}
-
-impl InId for GraphOutIn {}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum GraphOutOut {
-    Numeric,
-}
-
-impl OutId for GraphOutOut {}
-
-impl GraphOut {
-    pub fn new() -> Self {
-        Self
-    }
-}
-
-impl Node for GraphOut {
-    fn initialize() -> Self {
-        Self
-    }
-
-    fn title(&self) -> &str {
-        "GraphOut"
-    }
-
-    fn fold(&self, out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<Data> {
-        dbg!(out_id);
-
-        if let Some(out_id) = out_id.as_any().downcast_ref::<GraphOutOut>() {
-            match out_id {
-                GraphOutOut::Numeric => lasy_fold.get_in(&GraphOutIn::Numeric, meta),
-            }
-        } else {
-            Err(anyhow!("not a valid out_id"))
+        let function_id = port_in.function_id();
+        if port_out.function_id() != port_in.function_id() {
+            bail!("can't patch in two different function");
         }
+
+        let function = self
+            .functions
+            .get_mut(&function_id)
+            .context("given nodes doesn't reside in an existing function")?;
+
+        function.patch(port_out, port_in);
+
+        // let vertex_out = VertexId::from_port_id(&port_out);
+        // let vertex_in = VertexId::from_port_id(&port_in);
+
+        // self.vertices
+        //     .get_mut(&vertex_out)
+        //     .context("the given `out` node does not exists")?
+        //     .outbound
+        //     .entry(port_out.port_label())
+        //     .or_default()
+        //     .insert(port_in.clone());
+
+        // self.vertices
+        //     .get_mut(&vertex_in)
+        //     .context("the given `in` node does not exists")?
+        //     .inbound
+        //     .insert(port_in.port_label(), port_out);
+
+        Ok(())
     }
 
-    // fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-    //     in_id
-    //         .as_any()
-    //         .downcast_ref::<GraphOutIn>()
-    //         .map(|in_id| NodeInId::new(node_id, in_id))
-    // }
-
-    // fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-    //     None
-    // }
-}
-
-#[derive(Debug)]
-struct Subgraph {
-    graph: Arc<Mutex<Graph>>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct SubgraphInId {
-    name: String,
-}
-
-impl InId for SubgraphInId {}
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-struct SubgraphOutId {
-    name: String,
-}
-
-impl OutId for SubgraphOutId {}
-
-impl Subgraph {
-    pub fn new() -> Self {
-        Self {
-            graph: Arc::new(Mutex::new(Graph::new())),
-        }
-    }
-}
-
-impl Node for Subgraph {
-    fn initialize() -> Self {
-        Self::default()
+    pub fn main_function_id(&self) -> FunctionId {
+        // SAFETY: unwrap is used because the main function must be inserted into the graph during Self::new()
+        self.main_function_id
+            .expect("`main_function_id` must be set in Graph::new()")
     }
 
-    fn fold(
-        &self,
-        container_out_id: &dyn OutId,
-        lasy_fold: LasyFold,
-        meta: Meta,
-    ) -> anyhow::Result<Data> {
-        // if self.id_for("out") == Some(container_out_id) {
-
-        //     let inner_out_id = {
-        //         self.graph
-        //             .lock()
-        //             .expect("the inner graph has been poisoned, who was it ?!")
-        //             .graph_out_id_for("out")
-        //             .context("out name not found for this graph")
-        //             bail
-        //     };
-
-        //     let lasy_fold = LasyFold::new(out_id.node_id(), self.graph.clone());
-
-        //     lasy_fold
-        //         .get_input(out_id.inout_id(), self.base_meta)
-        //         .ok_or(anyhow!("prout"))
-
-        //     lasy_fold.get_input(in_id, meta)
-
-        // } else {
-        // }
-        Ok(Data::new(f32::default()))
-    }
-
-    fn title(&self) -> &str {
-        "Subgraph"
-    }
-
-    // fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId> {
-    //     in_id
-    //         .as_any()
-    //         .downcast_ref::<SubgraphInId>()
-    //         .map(|in_id| NodeInId::new(node_id, in_id))
-    // }
-
-    // fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId> {
-    //     out_id
-    //         .as_any()
-    //         .downcast_ref::<SubgraphOutId>()
-    //         .map(|out_id| NodeOutId::new(node_id, out_id))
-    // }
-}
-
-impl Default for Subgraph {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl Default for Graph {
-    fn default() -> Self {
-        Self::new()
+    pub fn main_function_mut(&mut self) -> &mut Function {
+        self.functions
+            .get_mut(&self.main_function_id())
+            .expect("`main function could not be found`")
     }
 }

@@ -1,38 +1,29 @@
+use std::{rc::Rc, sync::Mutex};
+
+mod id;
+pub use id::*;
+
+mod data;
+pub use data::*;
+
+mod node;
+pub use node::*;
+
 mod graph;
 pub use graph::*;
 
-mod lasy;
-pub use lasy::*;
+mod fold;
+pub use fold::*;
 
-mod node;
-pub use node::Node;
-pub use node::numeric;
-pub use node::textual;
-
-mod meta;
-pub use meta::*;
-
-pub mod id;
-
-mod data;
-pub use data::Data;
-
-use anyhow::{Context, anyhow};
-use std::sync::{Arc, Mutex};
-
-use crate::id::InId;
-use crate::id::{NodeId, OutId};
-
-#[derive(Debug)]
 pub struct Quakk {
-    pub graph: Arc<Mutex<Graph>>,
+    graph: Rc<Mutex<Graph>>,
 }
 
 impl Default for Quakk {
     fn default() -> Self {
-        let graph = Arc::new(Mutex::new(Graph::new()));
-
-        Self { graph }
+        Self {
+            graph: Rc::new(Mutex::new(Graph::new())),
+        }
     }
 }
 
@@ -41,26 +32,49 @@ impl Quakk {
         Self::default()
     }
 
-    pub fn fold_for(&self, graph_out_out_id: GraphOutOut) -> anyhow::Result<Data> {
-        let graph_out_out_id: &dyn OutId = &graph_out_out_id;
+    pub fn graph<R>(&self, reader: impl FnOnce(&Graph) -> R) -> R {
+        let graph = self
+            .graph
+            .lock()
+            .expect("the graph has been poisoned, who was it ?!");
 
-        let graph_out_handle = {
-            self.graph
-                .lock()
-                .expect("The graph has beend poisoned, who was it ?!")
-                .graph_out_handle()
-        };
+        reader(&graph)
+    }
 
-        graph_out_handle
-            .node()
-            .fold(
-                graph_out_out_id,
-                LasyFold::new(NodeId::GraphOut, self.graph.clone()),
-                Meta {
-                    quality: Quality::Balanced,
-                    tick: 0,
-                },
-            )
-            .context("Could not evaluate the graph")
+    pub fn graph_mut<R>(&mut self, writer: impl FnOnce(&mut Graph) -> R) -> R {
+        let mut graph = self
+            .graph
+            .lock()
+            .expect("the graph has been poisoned, who was it ?!");
+
+        writer(&mut graph)
+    }
+
+    pub fn fold_for(&self, port_label: impl Into<PortLabel>) -> Result<Data, anyhow::Error> {
+        // let (entry_vertex, entry_out_port) = self.graph(|graph| {
+        //     let main_function = graph.main_function_vertex();
+        //     let entry_out_port = main_function
+        //         .inbound_for(port_label)
+        //         .context("no node is patched to this function port")?;
+
+        //     let entry_vertex = graph
+        //         .vertex_for(entry_out_port.as_vertex_id())
+        //         .context("node should exist")?;
+
+        //     Ok::<_, anyhow::Error>((entry_vertex, entry_out_port))
+        // })?;
+
+        // let node_handle = entry_vertex
+        //     .node_handle()
+        //     .context("function to function not yet handled")?;
+
+        // node_handle.node().fold(
+        //     entry_out_port.port_label(),
+        //     LasyFold::new(entry_out_port.as_vertex_id(), self.graph.clone()),
+        // );
+
+        // main_function.
+
+        unimplemented!()
     }
 }

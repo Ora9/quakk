@@ -8,7 +8,7 @@ edition = "2024"
 [workspace]
 resolver = "2"
 members = [
-    "crates/quakk_new",
+    "crates/quakk",
     "crates/quakk_cli",
     # "crates/quakk_audio",
     "crates/quakk_app"]
@@ -20,8 +20,7 @@ unsafe_code = "forbid"
 # dead_code = "allow"
 
 [workspace.dependencies]
-# Workspace dependencies
-quakk = { path = "crates/quakk_new" }
+quakk = { path = "crates/quakk" }
 # quakk_cli = { path = "crates/quakk_cli" }
 # quakk_audio = { path = "crates/quakk_audio" }
 

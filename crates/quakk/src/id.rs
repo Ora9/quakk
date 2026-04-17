@@ -1,268 +1,235 @@
-//! Quakk uses a few differents types of identifiers for nodes and their ins and outs :
-//! - [`NodeId`] : Identifies a unique node in a graph
-//! - [`InoutId`] : Identifies either an input or output of an anonymous node. The specific node it
-//!   is tied to is not specified and should be unambiguously determined from context if needed
-//!     - [`InId`] : An input of an anonymous node
-//!     - [`OutId`] : An output of an anonymous node
-//! - [`NodeInoutId`] : Identifies either an input or output of a specific node
-//!     - [`NodeInId`] : An input of a node
-//!     - [`NodeOutId`] : An input of a node
-//!
-//! All of these eventually rely on [`HashId`] which is a simple hash, either randomly determined,
-//! or based on a string
-//!
-//! ```text
-//!   ┌────────┐ ┌─────────┐ ┌───────────────┐
-//!   │ NodeId │ │ InoutId │ │ NodeInoutId   │
-//!   └─┬──────┘ └─┬─────┬─┘ └─┬───────────┬─┘
-//!     │          │     │   ┌─▼────────┐┌─▼─────────┐
-//!     │          │     └─┐ │ NodeInId ││ NodeOutId │
-//!     │          │       │ └─┬────────┘└─┬─────────┘
-//!     │          ├───────┼───┘           │
-//!     │          │       ├───────────────┘
-//!     │        ┌─▼────┐┌─▼─────┐
-//!     │        │ InId ││ OutId │
-//!     │        └─┬────┘└┬──────┘
-//!     ├──────────┴──────┘
-//!   ┌─▼──────┐
-//!   │ HashId │
-//!   └────────┘
-//! ```
-use std::{
-    any::Any,
-    fmt::Debug,
-    hash::{BuildHasher, DefaultHasher, Hash, Hasher, RandomState},
-};
+use std::fmt::Debug;
 
-use anyhow::anyhow;
-use dyn_clone::DynClone;
-use dyn_eq::DynEq;
-use dyn_hash::DynHash;
-
-/// A simple hash, used by [`NodeId`], [`InId`] and [`OutId`]
+/// Identifies a [`Node`]
 ///
-/// Internaly `HashId` is an u64 hash, either a based on a string, or randomly
-/// determined
-#[derive(PartialEq, Eq, Clone, Copy, Hash)]
-pub struct HashId {
-    id: u64,
-}
-
-impl HashId {
-    /// Get a new random unique id
-    /// ```
-    /// # use quakk::HashId;
-    /// assert_ne!(HashId::new(), HashId::new());
-    /// ```
-    pub fn new() -> Self {
-        Self {
-            id: RandomState::new().build_hasher().finish(),
-        }
-    }
-
-    /// Get a new unique id based on a string input
-    /// ```
-    /// # use quakk::HashId;
-    /// assert_eq!(HashId::new_from("test"), HashId::new_from("test"));
-    /// assert_ne!(HashId::new_from("test"), HashId::new_from("other"));
-    /// ```
-    pub fn new_from(input: &str) -> Self {
-        let mut hasher = DefaultHasher::new();
-        hasher.write(input.as_bytes());
-        hasher.write_u8(0xff);
-
-        Self {
-            id: hasher.finish(),
-        }
-    }
-
-    pub fn display(&self) -> String {
-        format!("{:x}", self.id)
-    }
-
-    pub fn display_short(&self) -> String {
-        let mut out = Self::display(self);
-        out.truncate(out.floor_char_boundary(12));
-        out
-    }
-}
-
-impl Debug for HashId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:#x}", self.id)
-    }
-}
-
-impl Default for HashId {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-/// A id used to identify a [`Node`](quakk::Node)
-///
-/// It allows representing `GraphIn` and `GraphOut`. Thoses are specials types of nodes
-/// that handles ins and outs for the [`Graph`](quakk::Graph) itself. Theses specials nodes always
-/// exist once each in a graph.
-///
-/// Other nodes are identified with an [`HashId`], usually random
-#[derive(PartialEq, Eq, Clone, Copy, Hash)]
-pub enum NodeId {
-    GraphIn,
-    GraphOut,
-    Node(HashId),
+/// Each new node inserted in a [`Graph`] is assigned a new random id
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct NodeId {
+    node_id: u64,
+    function_id: FunctionId,
 }
 
 impl NodeId {
-    /// Return a new random [`NodeId`]
-    pub fn new_node() -> Self {
-        Self::Node(HashId::new())
-    }
+    // /// Return a new random `NodeId`
+    // ///
+    // /// ```
+    // /// # use quakk::NodeId;
+    // ///
+    // /// assert_ne!(NodeId::new_random(), NodeId::new_random());
+    // /// ```
+    // pub(crate) fn new_random(function_id: FunctionId) -> Self {
+    //     Self {
+    //         node_id: RandomState::new().build_hasher().finish(),
+    //         function_id,
+    //     }
+    // }
 
-    /// Return a new [`NodeId`] based on an input `&str`
-    pub fn new_node_from(input: &str) -> Self {
-        Self::Node(HashId::new_from(input))
-    }
-}
-
-impl Debug for NodeId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            NodeId::GraphIn => write!(f, "GraphIn"),
-            NodeId::GraphOut => write!(f, "GraphOut"),
-            NodeId::Node(hash_id) => write!(f, "Node({hash_id:?})"),
-        }
-    }
-}
-
-pub trait InId: Any + Debug + DynClone + DynEq + DynHash {}
-dyn_clone::clone_trait_object!(InId);
-dyn_eq::eq_trait_object!(InId);
-dyn_hash::hash_trait_object!(InId);
-
-pub trait OutId: Any + Debug + DynClone + DynEq + DynHash {}
-dyn_clone::clone_trait_object!(OutId);
-dyn_eq::eq_trait_object!(OutId);
-dyn_hash::hash_trait_object!(OutId);
-
-/// In the [`Graph`](quakk::Graph), each [`Nodes`](quakk::Node) ins and outs have an id.
-///
-/// The term `inout` is widely used in the code and documentation to refer to a node's input or output.
-///
-/// `InoutId` is designed to uniquely indentify an inout in an unspecified node, it is *not* tied to
-/// specific node and as a result cannot uniquely identify an inout in the graph. That would be the
-/// purpose of [`NodeInoutId`]
-///
-/// `InoutId` should be used only where the [`NodeId`] is unimportant, or can be unambiguously
-/// determined by context.
-///
-/// This id allow the distinction between :
-/// - `in` or "input", where data flowes inward into the node as parameter. An input can only have
-///   one edge (connection between a node's out and another node's in)
-/// - `out` or "output", where data flowes outward from the node, as the result of a computation.
-///   An output can have multiples edges connected to it, passing data to other node's inputs
-///
-/// Internally this id is constructed as an enum of either [`InId`] or [`OutId`]
-#[derive(PartialEq, Eq, Clone, Hash)]
-pub enum InoutId {
-    In(Box<dyn InId>),
-    Out(Box<dyn OutId>),
-}
-
-impl Debug for InoutId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            InoutId::In(in_id) => write!(f, "{:?}", in_id),
-            InoutId::Out(out_id) => write!(f, "{:?}", out_id),
-        }
-    }
-}
-
-#[derive(PartialEq, Eq, Clone, Hash)]
-pub struct NodeInId {
-    node_id: NodeId,
-    in_id: Box<dyn InId>,
-}
-
-impl NodeInId {
-    pub fn new(node_id: NodeId, in_id: &dyn InId) -> Self {
+    pub(crate) fn zero(function_id: FunctionId) -> Self {
         Self {
-            node_id,
-            in_id: dyn_clone::clone_box(in_id),
+            node_id: 0,
+            function_id,
         }
     }
 
-    pub fn node_id(&self) -> NodeId {
-        self.node_id
-    }
-
-    pub fn in_id(self) -> Box<dyn InId> {
-        self.in_id
-    }
-}
-
-impl Debug for NodeInId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}>{:?}", self.node_id, self.in_id)
-    }
-}
-
-#[derive(PartialEq, Eq, Clone, Hash)]
-pub struct NodeOutId {
-    node_id: NodeId,
-    out_id: Box<dyn OutId>,
-}
-
-impl NodeOutId {
-    pub fn new(node_id: NodeId, out_id: &dyn OutId) -> Self {
-        Self {
+    pub(crate) fn checked_increment(&self) -> Option<Self> {
+        self.node_id.checked_add(1).map(|node_id| NodeId {
             node_id,
-            out_id: dyn_clone::clone_box(out_id),
-        }
+            function_id: self.function_id,
+        })
     }
 
-    pub fn node_id(&self) -> NodeId {
-        self.node_id
+    pub fn function_id(&self) -> FunctionId {
+        self.function_id
     }
 
-    pub fn out_id(self) -> Box<dyn OutId> {
-        self.out_id
+    pub fn port_id(&self, label: impl Into<PortLabel>) -> PortId {
+        PortId::Node(self.node_port_id(label))
+    }
+
+    pub fn node_port_id(&self, label: impl Into<PortLabel>) -> NodePortId {
+        NodePortId::new(*self, label.into())
+    }
+
+    pub fn out(&self) -> NodePortId {
+        self.node_port_id("out")
+    }
+
+    pub fn r#in(&self) -> NodePortId {
+        self.node_port_id("in")
     }
 }
 
-impl Debug for NodeOutId {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}>{:?}", self.node_id, self.out_id)
-    }
-}
-
-/// In the [`Graph`](quakk::Graph), each [`Nodes`](quakk::Node) ins and outs have an id.
+/// Identifies a [`Function`]
 ///
-/// This id is designed to identify an inout ("in" or "out") in the graph
-/// It ties
-#[derive(PartialEq, Eq, Clone, Debug)]
-pub enum NodeInoutId {
-    In(NodeInId),
-    Out(NodeOutId),
+/// Each new function declared in a [`Graph `] is assigned a new random id
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+pub struct FunctionId {
+    id: u64,
 }
 
-impl NodeInoutId {
-    pub fn node_id(&self) -> NodeId {
-        match self {
-            Self::In(node_in_id) => node_in_id.node_id,
-            Self::Out(node_out_id) => node_out_id.node_id,
+impl FunctionId {
+    pub(crate) const ZERO: FunctionId = FunctionId { id: 0 };
+
+    // /// Return a new random `FunctionId`
+    // /// ```
+    // /// # use quakk::FunctionId;
+    // ///
+    // /// assert_ne!(FunctionId::new_random(), FunctionId::new_random());
+    // /// ```
+    // pub fn new_random() -> Self {
+    //     Self {
+    //         id: RandomState::new().build_hasher().finish(),
+    //     }
+    // }
+
+    pub fn as_u64(&self) -> u64 {
+        self.id
+    }
+
+    #[must_use]
+    pub(crate) fn checked_increment(&self) -> Option<Self> {
+        self.id.checked_add(1).map(|id| FunctionId { id })
+    }
+
+    pub fn port_id(&self, label: impl Into<PortLabel>) -> PortId {
+        PortId::Function(self.function_port_id(label))
+    }
+
+    pub fn function_port_id(&self, label: impl Into<PortLabel>) -> FunctionPortId {
+        FunctionPortId::new(*self, label.into())
+    }
+}
+
+impl Debug for FunctionId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "FunctionId({})", &self.id)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct PortLabel {
+    label: String,
+}
+
+impl PortLabel {
+    pub fn new(label: &str) -> Self {
+        Self {
+            label: label.into(),
         }
     }
-}
 
-impl From<NodeInId> for NodeInoutId {
-    fn from(value: NodeInId) -> Self {
-        Self::In(value)
+    pub fn as_str(&self) -> &str {
+        &self.label
     }
 }
 
-impl From<NodeOutId> for NodeInoutId {
-    fn from(value: NodeOutId) -> Self {
-        Self::Out(value)
+impl From<&str> for PortLabel {
+    fn from(v: &str) -> Self {
+        Self::new(v)
+    }
+}
+
+#[derive(Debug)]
+pub enum PortDirection {
+    In,
+    Out,
+}
+
+pub trait Port {
+    fn from_str(str: &str) -> Option<Self>
+    where
+        Self: Sized;
+
+    fn from_label(port_label: PortLabel) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        Self::from_str(port_label.as_str())
+    }
+
+    fn to_str(&self) -> &str;
+
+    fn to_label(&self) -> PortLabel {
+        PortLabel::new(Self::to_str(self))
+    }
+
+    fn direction(&self) -> PortDirection;
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PortId {
+    Node(NodePortId),
+    Function(FunctionPortId),
+}
+
+impl PortId {
+    pub fn function_id(&self) -> FunctionId {
+        match self {
+            Self::Node(node_port_id) => node_port_id.id().function_id(),
+            Self::Function(function_port_id) => function_port_id.function_id(),
+        }
+    }
+
+    pub fn is_node(&self) -> bool {
+        matches!(*self, Self::Node(_))
+    }
+
+    pub fn is_function(&self) -> bool {
+        matches!(*self, Self::Function(_))
+    }
+}
+
+impl From<FunctionPortId> for PortId {
+    fn from(v: FunctionPortId) -> Self {
+        Self::Function(v)
+    }
+}
+
+impl From<NodePortId> for PortId {
+    fn from(v: NodePortId) -> Self {
+        Self::Node(v)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct NodePortId {
+    id: NodeId,
+    label: PortLabel,
+}
+
+impl NodePortId {
+    pub fn new(node_id: NodeId, label: PortLabel) -> Self {
+        Self { id: node_id, label }
+    }
+
+    pub fn id(&self) -> NodeId {
+        self.id
+    }
+
+    pub fn label(&self) -> &PortLabel {
+        &self.label
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct FunctionPortId {
+    id: FunctionId,
+    label: PortLabel,
+}
+
+impl FunctionPortId {
+    pub fn new(function_id: FunctionId, label: PortLabel) -> Self {
+        Self {
+            id: function_id,
+            label,
+        }
+    }
+
+    pub fn function_id(&self) -> FunctionId {
+        self.id
+    }
+
+    pub fn label(&self) -> &PortLabel {
+        &self.label
     }
 }

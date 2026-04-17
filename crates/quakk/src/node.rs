@@ -1,45 +1,49 @@
 use std::fmt::Debug;
 
-use crate::{
-    Data, LasyFold, Meta, NodeId, OutId,
-    id::{InId, InoutId, NodeInId, NodeInoutId, NodeOutId},
-};
+use anyhow::Context;
+
+use crate::{Data, LasyFold, PortLabel};
 
 pub mod numeric;
-pub mod textual;
 
 #[derive(Debug)]
-pub struct DynNode {
-    node: Box<dyn Node>,
+pub struct Node {
+    inner: Box<dyn NodeTrait>,
 }
 
-pub trait Node: Debug {
-    fn initialize() -> Self
+impl Node {
+    pub fn new(node: Box<dyn NodeTrait>) -> Self {
+        Node { inner: node }
+    }
+
+    pub fn mutate(
+        mut self,
+        port: impl Into<PortLabel>,
+        value: impl Into<Data>,
+    ) -> Result<Self, anyhow::Error> {
+        self.inner
+            .mutate(port.into(), value.into())
+            .context("could not mutate")?;
+        Ok(self)
+    }
+
+    pub fn fold(
+        &mut self,
+        port_out: PortLabel,
+        lasy_fold: LasyFold,
+    ) -> Result<Data, anyhow::Error> {
+        self.inner.fold(port_out, lasy_fold)
+    }
+}
+
+pub trait NodeTrait: Debug {
+    fn init() -> Node
     where
         Self: Sized;
 
-    /// The node "title" when displayed
     fn title(&self) -> &str;
 
-    fn fold(&self, out_id: &dyn OutId, lasy_fold: LasyFold, meta: Meta) -> anyhow::Result<Data>;
+    fn mutate(&mut self, port_label: PortLabel, value: Data) -> Result<(), anyhow::Error>;
 
-    // fn node_in_id(&self, in_id: &dyn InId, node_id: NodeId) -> Option<NodeInId>;
-    // fn node_out_id(&self, out_id: &dyn OutId, node_id: NodeId) -> Option<NodeOutId>;
-
-    // fn node_inout_id_for(&self, inout_name: &str, node_id: NodeId) -> Option<NodeInoutId> {
-    //     self.id_for(inout_name)
-    //         .and_then(|inout_id| Some(NodeInoutId::new(node_id, inout_id)))
-    // }
-
-    // fn id_for(&self, inout_name: &str) -> Option<InoutId>;
-
-    // fn in_id_for(&self, in_name: &str) -> Option<InId> {
-    //     self.id_for(in_name)
-    //         .and_then(|inout_id| inout_id.try_into().ok())
-    // }
-
-    // fn out_id_for(&self, out_name: &str) -> Option<OutId> {
-    //     self.id_for(out_name)
-    //         .and_then(|inout_id| inout_id.try_into().ok())
-    // }
+    fn fold(&mut self, port_out: PortLabel, lasy_fold: LasyFold) -> Result<Data, anyhow::Error>;
 }
