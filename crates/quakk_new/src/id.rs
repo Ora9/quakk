@@ -1,46 +1,5 @@
 use std::fmt::Debug;
 
-// #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-// pub enum VertexId {
-//     Node(NodeId),
-//     Function(FunctionId),
-// }
-
-// impl VertexId {
-//     pub fn from_port_id(port_id: &VertexPortId) -> Self {
-//         match port_id {
-//             VertexPortId::Node(node_id) => Self::Node(node_id.node_id),
-//             VertexPortId::Function(function_id) => Self::Function(function_id.function_id),
-//         }
-//     }
-
-//     pub fn function_id(&self) -> Option<FunctionId> {
-//         match self {
-//             VertexId::Function(function_id) => Some(*function_id),
-//             _ => None,
-//         }
-//     }
-
-//     pub fn node_id(&self) -> Option<NodeId> {
-//         match self {
-//             VertexId::Node(node_id) => Some(*node_id),
-//             _ => None,
-//         }
-//     }
-// }
-
-// impl From<FunctionId> for VertexId {
-//     fn from(value: FunctionId) -> Self {
-//         Self::Function(value)
-//     }
-// }
-
-// impl From<NodeId> for VertexId {
-//     fn from(value: NodeId) -> Self {
-//         Self::Node(value)
-//     }
-// }
-
 /// Identifies a [`Node`]
 ///
 /// Each new node inserted in a [`Graph`] is assigned a new random id
@@ -196,50 +155,6 @@ pub trait Port {
 
     fn direction(&self) -> PortDirection;
 }
-
-// impl<T> From<T> for Por
-// where
-//     T: Port,
-// {
-//     fn from(value: PortLabel) -> PortLabel {}
-// }
-
-// /// Point to either a node port or function port
-// #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-// pub enum VertexPortId {
-//     Node(NodePortId),
-//     Function(FunctionPortId),
-// }
-
-// impl VertexPortId {
-//     pub fn port_label(&self) -> PortLabel {
-//         match self {
-//             Self::Function(port_id) => port_id.label.clone(),
-//             Self::Node(port_id) => port_id.label.clone(),
-//         }
-//     }
-
-//     pub fn node_id(&self) -> Option<NodeId> {
-//         match self {
-//             Self::Node(node_port_id) => Some(node_port_id.node_id),
-//             _ => None,
-//         }
-//     }
-
-//     pub fn function_id(&self) -> Option<FunctionId> {
-//         match self {
-//             Self::Function(function_port_id) => Some(function_port_id.function_id),
-//             _ => None,
-//         }
-//     }
-
-//     pub fn as_vertex_id(&self) -> VertexId {
-//         match self {
-//             Self::Node(node_port_id) => VertexId::Node(node_port_id.node_id),
-//             Self::Function(function_port_id) => VertexId::Function(function_port_id.function_id),
-//         }
-//     }
-// }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PortId {
