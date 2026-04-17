@@ -170,7 +170,15 @@ impl Function {
 
         self.last_node_id = Some(next_node_id);
 
-        next_node_id
+        if !self.nodes.contains_key(&next_node_id) {
+            next_node_id
+        } else {
+            eprintln!(
+                "failed attempt to create a new id in function #{:?} (id already exists), retrying",
+                function_id
+            );
+            self.next_node_id(function_id)
+        }
     }
 
     fn insert(&mut self, node_id: NodeId, node: Node) {
@@ -202,7 +210,7 @@ impl Graph {
         graph
     }
 
-    pub(crate) fn next_function_id(&mut self) -> FunctionId {
+    fn next_function_id(&mut self) -> FunctionId {
         let next_function_id = self
             .last_function_id
             .unwrap_or(FunctionId::ZERO)
@@ -211,19 +219,27 @@ impl Graph {
 
         self.last_function_id = Some(next_function_id);
 
-        next_function_id
+        if !self.functions.contains_key(&next_function_id) {
+            next_function_id
+        } else {
+            eprintln!("failed attempt to create a new id the graph (id already exists), retrying");
+            self.next_function_id()
+        }
     }
 
     /// Insert the given node in the main function
     pub fn insert(&mut self, node: Node) -> NodeId {
         // let node_id = NodeId::new_random(self.main_function_id());
         let main_function_id = self.main_function_id();
-        let main_function = self.main_function_mut();
+        // let main_function = self.main_function_mut();
 
-        let node_id = main_function.next_node_id(main_function_id);
-        main_function.insert(node_id, node);
+        self.insert_into(main_function_id, node)
+            .expect("should always be able to insert into main_function")
 
-        node_id
+        // let node_id = main_function.next_node_id(main_function_id);
+        // main_function.insert(node_id, node);
+
+        // node_id
     }
 
     /// Insert the given node into the specified function
@@ -237,7 +253,7 @@ impl Graph {
             .get_mut(&function_id)
             .context("this function could not be found")?;
 
-        let node_id = NodeId::new_random(function_id);
+        let node_id = function.next_node_id(function_id);
 
         function.insert(node_id, node);
 
