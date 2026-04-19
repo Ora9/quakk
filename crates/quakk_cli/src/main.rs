@@ -7,6 +7,8 @@ fn main() -> Result<(), anyhow::Error> {
     let mut qk = Quakk::new();
 
     qk.graph_mut(|graph| {
+        let main_function = graph.main_function_id();
+
         let main_num_a = graph.insert_in_main(NumericConstant::init().mutate("in", 2.0)?);
         let main_num_b = graph.insert_in_main(NumericConstant::init().mutate("in", 3.0)?);
         let main_num_c = graph.insert_in_main(NumericConstant::init().mutate("in", 5.0)?);
@@ -32,11 +34,11 @@ fn main() -> Result<(), anyhow::Error> {
             patate,
             Arithmetics::init().mutate("operation", ArithmeticsOperation::Addition)?,
         );
-        let main_number_out = graph.main_function_id().port_id("number_out");
-        let _ = graph.patch(main_add.port_id("out"), main_number_out);
+        let _ = graph.patch(main_add.port_id("out"), main_function.port_id("number_out"));
 
-        // let _ = graph.patch(patate_num_a.out(), patate_add.port_id("term1"));
-        // let _ = graph.patch(patate_add.out(), main_number_out.clone());
+        let _ = graph.patch(patate.port_id("number_in"), patate_add.port_id("term2"));
+        let _ = graph.patch(patate_num_a.out(), patate_add.port_id("term1"));
+        let _ = graph.patch(patate_add.out(), main_function.port_id("number_out"));
 
         dbg!(&graph);
 

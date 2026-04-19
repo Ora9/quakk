@@ -4,52 +4,64 @@ use anyhow::{Context, Ok, bail};
 
 use crate::{FunctionId, Node, NodeId, PortId, PortLabel};
 
-/// Represent all inbound and outbound connection of either a node or a function
-#[derive(Debug)]
-struct Bounds {
-    inbound: HashMap<PortLabel, PortId>,
-    outbound: HashMap<PortLabel, HashSet<PortId>>,
+#[derive(Debug, PartialEq, Eq, Hash)]
+struct Edge {
+    source: PortId,
+    target: PortId,
 }
 
-impl Bounds {
-    fn new() -> Self {
-        Self {
-            inbound: HashMap::new(),
-            outbound: HashMap::new(),
-        }
-    }
-
-    fn outbound_for(&self, port_label: impl Into<PortLabel>) -> Option<HashSet<PortId>> {
-        self.outbound.get(&port_label.into()).cloned()
-    }
-
-    fn inbound_for(&self, port_label: impl Into<PortLabel>) -> Option<PortId> {
-        self.inbound.get(&port_label.into()).cloned()
+impl Edge {
+    fn new(source: PortId, target: PortId) -> Self {
+        Self { source, target }
     }
 }
 
-#[derive(Debug)]
-pub struct NodeBounds {
-    node: Node,
-    bounds: Bounds,
-}
+// /// Represent all inbound and outbound connection of either a node or a function
+// #[derive(Debug)]
+// struct Bounds {
+//     inbound: HashMap<PortLabel, PortId>,
+//     outbound: HashMap<PortLabel, HashSet<PortId>>,
+// }
 
-impl NodeBounds {
-    fn new(node: Node) -> Self {
-        Self {
-            node,
-            bounds: Bounds::new(),
-        }
-    }
-}
+// impl Bounds {
+//     fn new() -> Self {
+//         Self {
+//             inbound: HashMap::new(),
+//             outbound: HashMap::new(),
+//         }
+//     }
+
+//     fn outbound_for(&self, port_label: impl Into<PortLabel>) -> Option<HashSet<PortId>> {
+//         self.outbound.get(&port_label.into()).cloned()
+//     }
+
+//     fn inbound_for(&self, port_label: impl Into<PortLabel>) -> Option<PortId> {
+//         self.inbound.get(&port_label.into()).cloned()
+//     }
+// }
+
+// // #[derive(Debug)]
+// // pub struct NodeBounds {
+// //     node: Node,
+// //     bounds: Bounds,
+// // }
+
+// impl NodeBounds {
+//     fn new(node: Node) -> Self {
+//         Self {
+//             node,
+//             bounds: Bounds::new(),
+//         }
+//     }
+// }
 
 #[derive(Debug)]
 pub struct Function {
     pub name: String,
     pub color: u32,
 
-    nodes: HashMap<NodeId, NodeBounds>,
-    self_bounds: Bounds,
+    nodes: HashMap<NodeId, Node>,
+    edges: HashSet<Edge>,
     last_node_id: Option<NodeId>,
 }
 
@@ -60,13 +72,13 @@ impl Function {
             color,
 
             nodes: HashMap::new(),
-            self_bounds: Bounds::new(),
+            edges: HashSet::new(),
 
             last_node_id: None,
         }
     }
 
-    fn default(function_id: FunctionId) -> Self {
+    fn default_for(function_id: FunctionId) -> Self {
         Self::new(&format!("Function-{}", function_id.as_u64()), 0)
     }
 
@@ -91,15 +103,21 @@ impl Function {
     }
 
     fn insert_node(&mut self, node_id: NodeId, node: Node) {
-        self.nodes.insert(node_id, NodeBounds::new(node));
+        self.nodes.insert(node_id, node);
     }
 
-    pub fn patch(&mut self, port_out: PortId, port_in: PortId) -> Result<(), anyhow::Error> {
+    pub fn patch(&mut self, source: PortId, target: PortId) -> Result<(), anyhow::Error> {
         // dbg!(&port_out, &port_in);
 
-        if port_out.function_id() != port_in.function_id() {
+        // TODO: should make sure that the port_id we are given is in our function
+        if source.function_id() != target.function_id() {
             bail!("can't patch in two different function");
         }
+
+        let edge = Edge::new(source, target);
+        self.edges.insert(edge);
+
+        Ok(())
 
         // let mut bounds = |port_id| {
         //     if let PortId::Node(node_port_id) = port_id {
@@ -120,39 +138,39 @@ impl Function {
         //   the bound is patched)
         // - too much repetition,
 
-        {
-            let out_bounds = if let PortId::Node(ref node_port_id) = port_out {
-                &mut self
-                    .nodes
-                    .get_mut(&node_port_id.id())
-                    .context("could not find the given node in the function")?
-                    .bounds
-            } else {
-                &mut self.self_bounds
-            };
+        // {
+        //     let out_bounds = if let PortId::Node(ref node_port_id) = port_out {
+        //         &mut self
+        //             .nodes
+        //             .get_mut(&node_port_id.id())
+        //             .context("could not find the given node in the function")?
+        //             .bounds
+        //     } else {
+        //         &mut self.self_bounds
+        //     };
 
-            out_bounds
-                .outbound
-                .entry(port_out.port_label().clone())
-                .or_default()
-                .insert(port_in.clone());
-        }
+        //     out_bounds
+        //         .outbound
+        //         .entry(port_out.port_label().clone())
+        //         .or_default()
+        //         .insert(port_in.clone());
+        // }
 
-        {
-            let in_bounds = if let PortId::Node(ref node_port_id) = port_in {
-                &mut self
-                    .nodes
-                    .get_mut(&node_port_id.id())
-                    .context("could not find the given node in the function")?
-                    .bounds
-            } else {
-                &mut self.self_bounds
-            };
+        // {
+        //     let in_bounds = if let PortId::Node(ref node_port_id) = port_in {
+        //         &mut self
+        //             .nodes
+        //             .get_mut(&node_port_id.id())
+        //             .context("could not find the given node in the function")?
+        //             .bounds
+        //     } else {
+        //         &mut self.self_bounds
+        //     };
 
-            in_bounds
-                .inbound
-                .insert(port_in.port_label().clone(), port_out);
-        }
+        //     in_bounds
+        //         .inbound
+        //         .insert(port_in.port_label().clone(), port_out);
+        // }
 
         // .outbound
         // .entry(out_port_label);
@@ -168,8 +186,6 @@ impl Function {
         // };
 
         // dbg!(out_bounds);
-
-        Ok(())
 
         // let vertex_out = VertexId::from_port_id(&port_out);
         // let vertex_in = VertexId::from_port_id(&port_in);
@@ -242,7 +258,7 @@ impl Graph {
         let function = self
             .functions
             .entry(function_id)
-            .or_insert(Function::default(function_id));
+            .or_insert(Function::default_for(function_id));
 
         let node_id = function.next_node_id(function_id);
 
