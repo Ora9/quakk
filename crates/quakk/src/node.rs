@@ -43,7 +43,7 @@ pub trait NodeTrait: Debug {
 
     fn title(&self) -> &str;
 
-    fn mutate(&mut self, port_label: PortLabel, value: Data) -> Result<(), anyhow::Error>;
+    fn mutate(&mut self, port: PortLabel, value: Data) -> Result<(), anyhow::Error>;
 
-    fn fold(&mut self, port_out: PortLabel, lasy_fold: LasyFold) -> Result<Data, anyhow::Error>;
+    fn fold(&mut self, port: PortLabel, lasy_fold: LasyFold) -> Result<Data, anyhow::Error>;
 }

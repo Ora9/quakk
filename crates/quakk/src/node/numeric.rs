@@ -48,8 +48,8 @@ impl NodeTrait for NumericConstant {
         "Numeric Constant"
     }
 
-    fn mutate(&mut self, port_label: PortLabel, value: Data) -> Result<(), anyhow::Error> {
-        let port = NumericConstantPorts::from_label(port_label).context("not a valid port")?;
+    fn mutate(&mut self, port: PortLabel, value: Data) -> Result<(), anyhow::Error> {
+        let port = NumericConstantPorts::from_label(port).context("not a valid port")?;
 
         match port {
             NumericConstantPorts::In => {
@@ -60,7 +60,7 @@ impl NodeTrait for NumericConstant {
         }
     }
 
-    fn fold(&mut self, _port_out: PortLabel, _lasy_fold: LasyFold) -> Result<Data, anyhow::Error> {
+    fn fold(&mut self, _port: PortLabel, _lasy_fold: LasyFold) -> Result<Data, anyhow::Error> {
         Err(anyhow!("ho that's unimplemented"))
     }
 }
@@ -164,8 +164,8 @@ impl NodeTrait for Arithmetics {
         "Arithmetics"
     }
 
-    fn mutate(&mut self, port_label: PortLabel, value: Data) -> Result<(), anyhow::Error> {
-        let port = ArithmeticsPorts::from_label(port_label).context("not a valid port")?;
+    fn mutate(&mut self, port: PortLabel, value: Data) -> Result<(), anyhow::Error> {
+        let port = ArithmeticsPorts::from_label(port).context("not a valid port")?;
 
         match port {
             ArithmeticsPorts::Term1 => {
@@ -186,8 +186,8 @@ impl NodeTrait for Arithmetics {
         }
     }
 
-    fn fold(&mut self, port_out: PortLabel, lasy_fold: LasyFold) -> Result<Data, anyhow::Error> {
-        if let Some(port) = ArithmeticsPorts::from_label(port_out)
+    fn fold(&mut self, port: PortLabel, lasy_fold: LasyFold) -> Result<Data, anyhow::Error> {
+        if let Some(port) = ArithmeticsPorts::from_label(port)
             && port != ArithmeticsPorts::Out
         {
             return Err(anyhow!("no a valid output port"));
