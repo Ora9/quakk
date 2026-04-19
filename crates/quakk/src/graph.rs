@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use anyhow::{Context, Ok, bail};
 
-use crate::{FunctionId, Node, NodeId, PortId, PortLabel};
+use crate::{FunctionId, Node, NodeId, PortId};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 struct Edge {
@@ -15,45 +15,6 @@ impl Edge {
         Self { source, target }
     }
 }
-
-// /// Represent all inbound and outbound connection of either a node or a function
-// #[derive(Debug)]
-// struct Bounds {
-//     inbound: HashMap<PortLabel, PortId>,
-//     outbound: HashMap<PortLabel, HashSet<PortId>>,
-// }
-
-// impl Bounds {
-//     fn new() -> Self {
-//         Self {
-//             inbound: HashMap::new(),
-//             outbound: HashMap::new(),
-//         }
-//     }
-
-//     fn outbound_for(&self, port_label: impl Into<PortLabel>) -> Option<HashSet<PortId>> {
-//         self.outbound.get(&port_label.into()).cloned()
-//     }
-
-//     fn inbound_for(&self, port_label: impl Into<PortLabel>) -> Option<PortId> {
-//         self.inbound.get(&port_label.into()).cloned()
-//     }
-// }
-
-// // #[derive(Debug)]
-// // pub struct NodeBounds {
-// //     node: Node,
-// //     bounds: Bounds,
-// // }
-
-// impl NodeBounds {
-//     fn new(node: Node) -> Self {
-//         Self {
-//             node,
-//             bounds: Bounds::new(),
-//         }
-//     }
-// }
 
 #[derive(Debug)]
 pub struct Function {
@@ -107,8 +68,6 @@ impl Function {
     }
 
     pub fn patch(&mut self, source: PortId, target: PortId) -> Result<(), anyhow::Error> {
-        // dbg!(&port_out, &port_in);
-
         // TODO: should make sure that the port_id we are given is in our function
         if source.function_id() != target.function_id() {
             bail!("can't patch in two different function");
@@ -118,91 +77,6 @@ impl Function {
         self.edges.insert(edge);
 
         Ok(())
-
-        // let mut bounds = |port_id| {
-        //     if let PortId::Node(node_port_id) = port_id {
-        //         Ok(&mut self
-        //             .nodes
-        //             .get_mut(&node_port_id.id())
-        //             .context("could not find the given node in the function")?
-        //             .bounds)
-        //     } else {
-        //         Ok(&mut self.self_bounds)
-        //     }
-        // };
-
-        // let out_bound = bou
-
-        // TODO: improve this :
-        // - if early retrun (node not found, we can be in an inbetween state where only one of
-        //   the bound is patched)
-        // - too much repetition,
-
-        // {
-        //     let out_bounds = if let PortId::Node(ref node_port_id) = port_out {
-        //         &mut self
-        //             .nodes
-        //             .get_mut(&node_port_id.id())
-        //             .context("could not find the given node in the function")?
-        //             .bounds
-        //     } else {
-        //         &mut self.self_bounds
-        //     };
-
-        //     out_bounds
-        //         .outbound
-        //         .entry(port_out.port_label().clone())
-        //         .or_default()
-        //         .insert(port_in.clone());
-        // }
-
-        // {
-        //     let in_bounds = if let PortId::Node(ref node_port_id) = port_in {
-        //         &mut self
-        //             .nodes
-        //             .get_mut(&node_port_id.id())
-        //             .context("could not find the given node in the function")?
-        //             .bounds
-        //     } else {
-        //         &mut self.self_bounds
-        //     };
-
-        //     in_bounds
-        //         .inbound
-        //         .insert(port_in.port_label().clone(), port_out);
-        // }
-
-        // .outbound
-        // .entry(out_port_label);
-
-        // let mut in_bounds = if let PortId::Node(node_port_id) = port_in {
-        //     &self
-        //         .nodes
-        //         .get_mut(&node_port_id.id())
-        //         .context("could not find the given node in the function")?
-        //         .bounds
-        // } else {
-        //     &self.self_bounds
-        // };
-
-        // dbg!(out_bounds);
-
-        // let vertex_out = VertexId::from_port_id(&port_out);
-        // let vertex_in = VertexId::from_port_id(&port_in);
-
-        // self.vertices
-        //     .get_mut(&vertex_out)
-        //     .context("the given `out` node does not exists")?
-        //     .outbound
-        //     .entry(port_out.port_label())
-        //     .or_default()
-        //     .insert(port_in.clone());
-
-        // self.vertices
-        //     .get_mut(&vertex_in)
-        //     .context("the given `in` node does not exists")?
-        //     .inbound
-        //     .insert(port_in.port_label(), port_out);
     }
 }
 
