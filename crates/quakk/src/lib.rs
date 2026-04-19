@@ -1,6 +1,7 @@
 use std::{rc::Rc, sync::Mutex};
 
 mod id;
+use anyhow::Context;
 pub use id::*;
 
 mod data;
@@ -51,6 +52,17 @@ impl Quakk {
     }
 
     pub fn fold_for(&self, port_label: impl Into<PortLabel>) -> Result<Data, anyhow::Error> {
+        let a = self.graph(|graph| {
+            let main_function = graph.main_function_id();
+            let out_id = main_function.port_id(port_label);
+
+            let edge = graph
+                .edge_for_target_port(out_id)
+                .context("no node is patched to this function port")?;
+
+            edge.Ok::<_, anyhow::Error>(())
+        })?;
+
         // let (entry_vertex, entry_out_port) = self.graph(|graph| {
         //     let main_function = graph.main_function_vertex();
         //     let entry_out_port = main_function

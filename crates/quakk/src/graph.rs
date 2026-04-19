@@ -1,11 +1,11 @@
 use std::collections::{HashMap, HashSet};
 
-use anyhow::{Context, Ok, bail};
+use anyhow::{Context, Ok, anyhow, bail};
 
 use crate::{FunctionId, Node, NodeId, PortId};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
-struct Edge {
+pub struct Edge {
     source: PortId,
     target: PortId,
 }
@@ -13,6 +13,14 @@ struct Edge {
 impl Edge {
     fn new(source: PortId, target: PortId) -> Self {
         Self { source, target }
+    }
+
+    pub fn source(&self) -> &PortId {
+        &self.source
+    }
+
+    pub fn target(&self) -> &PortId {
+        &self.target
     }
 }
 
@@ -50,10 +58,6 @@ impl Function {
         }
     }
 
-    fn default_for(function_id: FunctionId) -> Self {
-        Self::new(&format!("Function-{}", function_id.as_u64()), 0)
-    }
-
     fn next_node_id(&mut self, function_id: FunctionId) -> NodeId {
         let next_node_id = self
             .last_node_id
@@ -67,7 +71,7 @@ impl Function {
             next_node_id
         } else {
             eprintln!(
-                "failed attempt to create a new id in function #{:?} (id already exists), retrying",
+                "failed attempt to create a new id in function #{:?} (id already exists), retrying..",
                 function_id
             );
             self.next_node_id(function_id)
@@ -81,13 +85,21 @@ impl Function {
     pub fn patch(&mut self, source: PortId, target: PortId) -> Result<(), anyhow::Error> {
         // TODO: should make sure that the port_id we are given is in our function
         if source.function_id() != target.function_id() {
-            bail!("can't patch in two different function");
+            Err(anyhow!("can't patch in two different function"))
+        } else {
+            let edge = Edge::new(source, target);
+            self.edges.insert(edge);
+
+            Ok(())
         }
+    }
 
-        let edge = Edge::new(source, target);
-        self.edges.insert(edge);
+    pub fn nodes(&self) -> &HashMap<NodeId, Node> {
+        &self.nodes
+    }
 
-        Ok(())
+    pub fn edges(&self) -> &HashSet<Edge> {
+        &self.edges
     }
 }
 
@@ -95,6 +107,7 @@ impl Function {
 #[derive(Debug)]
 pub struct Graph {
     functions: HashMap<FunctionId, Function>,
+
     main_function_id: Option<FunctionId>,
     last_function_id: Option<FunctionId>,
 }
@@ -129,7 +142,9 @@ impl Graph {
         if !self.functions.contains_key(&next_function_id) {
             next_function_id
         } else {
-            eprintln!("failed attempt to create a new id the graph (id already exists), retrying");
+            eprintln!(
+                "failed attempt to create a new id the graph (id already exists), retrying.."
+            );
             self.next_function_id()
         }
     }
@@ -165,18 +180,42 @@ impl Graph {
 
     pub fn patch(
         &mut self,
-        port_out: impl Into<PortId>,
-        port_in: impl Into<PortId>,
+        source: impl Into<PortId>,
+        target: impl Into<PortId>,
     ) -> Result<(), anyhow::Error> {
-        let port_in: PortId = port_in.into();
-        let port_out: PortId = port_out.into();
+        let source: PortId = source.into();
+        let target: PortId = target.into();
 
         let function = self
             .functions
-            .get_mut(&port_out.function_id())
+            .get_mut(&source.function_id())
             .context("given nodes doesn't reside in an existing function")?;
 
-        function.patch(port_out, port_in)
+        function.patch(source, target)
+    }
+
+    fn find_edge(&self, port_id: &PortId, predicate: impl Fn(&Edge) -> bool) -> Option<&Edge> {
+        // TODO: lol that's kinda ugly that we call our predicate in another anonymous closure,
+        // can't we directly take a closure that would be use by find() ?
+        self.functions
+            .get(&port_id.function_id())?
+            .edges()
+            .iter()
+            .find(|&edge| predicate(edge))
+    }
+
+    pub fn edge_for_port(&self, port_id: PortId) -> Option<&Edge> {
+        self.find_edge(&port_id, |edge| {
+            *edge.source() == port_id || *edge.target() == port_id
+        })
+    }
+
+    pub fn edge_for_source_port(&self, port_id: PortId) -> Option<&Edge> {
+        self.find_edge(&port_id, |edge| *edge.source() == port_id)
+    }
+
+    pub fn edge_for_target_port(&self, port_id: PortId) -> Option<&Edge> {
+        self.find_edge(&port_id, |edge| *edge.target() == port_id)
     }
 
     pub fn main_function_id(&self) -> FunctionId {
@@ -189,5 +228,9 @@ impl Graph {
         self.functions
             .get_mut(&self.main_function_id())
             .expect("`main function could not be found`")
+    }
+
+    pub fn functions(&self) -> &HashMap<FunctionId, Function> {
+        &self.functions
     }
 }

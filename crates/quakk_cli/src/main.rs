@@ -63,7 +63,7 @@ fn main() -> Result<(), anyhow::Error> {
     })?;
 
     // let _ = qk.fold_for("number_out");
-    // dbg!(qk.fold_for("number_out").unwrap());
+    dbg!(qk.fold_for("number_out").unwrap());
 
     Ok(())
 }
