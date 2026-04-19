@@ -25,10 +25,10 @@ fn main() -> Result<(), anyhow::Error> {
         let _ = graph.patch(main_mult.out(), main_add.port_id("term1"));
         let _ = graph.patch(main_num_c.out(), main_add.port_id("term2"));
 
-        let patate = graph.insert_function(Function::new(FunctionDef {
+        let patate = graph.insert_function(FunctionDef {
             name: "patate".to_string(),
             color: 88,
-        }));
+        });
 
         let patate_num_a = graph.insert_in(patate, NumericConstant::init().mutate("in", 8.55)?);
         let patate_num_b = graph.insert_in(patate, NumericConstant::init().mutate("in", 1312.161)?);

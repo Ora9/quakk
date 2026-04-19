@@ -121,10 +121,10 @@ impl Graph {
             last_function_id: None,
         };
 
-        let main = Function::new(FunctionDef {
+        let main = FunctionDef {
             name: "Main".to_string(),
             color: 256,
-        });
+        };
         graph.main_function_id = Some(graph.insert_function(main));
 
         graph
@@ -170,10 +170,11 @@ impl Graph {
         node_id
     }
 
-    pub fn insert_function(&mut self, function: Function) -> FunctionId {
+    pub fn insert_function(&mut self, function_def: FunctionDef) -> FunctionId {
         let function_id = self.next_function_id();
 
-        self.functions.insert(function_id, function);
+        self.functions
+            .insert(function_id, Function::new(function_def));
 
         function_id
     }
