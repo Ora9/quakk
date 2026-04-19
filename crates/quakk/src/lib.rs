@@ -60,7 +60,7 @@ impl Quakk {
                 .edge_for_target_port(out_id)
                 .context("no node is patched to this function port")?;
 
-            edge.Ok::<_, anyhow::Error>(())
+            Ok::<_, anyhow::Error>(())
         })?;
 
         // let (entry_vertex, entry_out_port) = self.graph(|graph| {
