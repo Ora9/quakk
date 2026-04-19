@@ -42,8 +42,8 @@ impl NodeId {
         self.function_id
     }
 
-    pub fn port_id(&self, label: impl Into<PortLabel>) -> PortId {
-        PortId::Node(self.node_port_id(label))
+    pub fn port_id(&self, port_label: impl Into<PortLabel>) -> PortId {
+        PortId::Node(self.node_port_id(port_label))
     }
 
     pub fn node_port_id(&self, label: impl Into<PortLabel>) -> NodePortId {
@@ -91,12 +91,12 @@ impl FunctionId {
         self.id.checked_add(1).map(|id| FunctionId { id })
     }
 
-    pub fn port_id(&self, label: impl Into<PortLabel>) -> PortId {
-        PortId::Function(self.function_port_id(label))
+    pub fn port_id(&self, port_label: impl Into<PortLabel>) -> PortId {
+        PortId::Function(self.as_function_port_id(port_label))
     }
 
-    pub fn function_port_id(&self, label: impl Into<PortLabel>) -> FunctionPortId {
-        FunctionPortId::new(*self, label.into())
+    pub fn as_function_port_id(&self, port_label: impl Into<PortLabel>) -> FunctionPortId {
+        FunctionPortId::new(*self, port_label.into())
     }
 }
 
