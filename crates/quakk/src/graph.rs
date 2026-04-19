@@ -17,21 +17,32 @@ impl Edge {
 }
 
 #[derive(Debug)]
-pub struct Function {
+pub struct FunctionDef {
     pub name: String,
     pub color: u32,
+}
 
+impl FunctionDef {
+    fn default_for(function_id: FunctionId) -> Self {
+        FunctionDef {
+            name: format!("Function-{}", function_id.as_u64()),
+            color: 0,
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct Function {
+    def: FunctionDef,
     nodes: HashMap<NodeId, Node>,
     edges: HashSet<Edge>,
     last_node_id: Option<NodeId>,
 }
 
 impl Function {
-    pub fn new(name: &str, color: u32) -> Self {
+    pub fn new(def: FunctionDef) -> Self {
         Self {
-            name: name.to_string(),
-            color,
-
+            def,
             nodes: HashMap::new(),
             edges: HashSet::new(),
 
@@ -97,7 +108,10 @@ impl Graph {
             last_function_id: None,
         };
 
-        let main = Function::new("Main", 55);
+        let main = Function::new(FunctionDef {
+            name: "Main".to_string(),
+            color: 256,
+        });
         graph.main_function_id = Some(graph.insert_function(main));
 
         graph
@@ -132,7 +146,7 @@ impl Graph {
         let function = self
             .functions
             .entry(function_id)
-            .or_insert(Function::default_for(function_id));
+            .or_insert(Function::new(FunctionDef::default_for(function_id)));
 
         let node_id = function.next_node_id(function_id);
 

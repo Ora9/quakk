@@ -3,24 +3,24 @@ use std::{any::Any, fmt::Debug};
 use anyhow::anyhow;
 
 #[derive(Debug)]
-pub struct DataTypeDefinition {
+pub struct DataTypeDef {
     pub title: String,
     pub color: u32,
 }
 
 pub trait DataTrait: Any + Debug {
-    fn type_definition(&self) -> DataTypeDefinition;
+    fn type_def(&self) -> DataTypeDef;
 }
 
 pub struct Data {
     inner: Box<dyn DataTrait>,
-    definition: DataTypeDefinition,
+    def: DataTypeDef,
 }
 
 impl Data {
     pub fn new(value: impl DataTrait) -> Self {
         Data {
-            definition: value.type_definition(),
+            def: value.type_def(),
 
             inner: Box::new(value),
         }
@@ -45,7 +45,7 @@ impl Data {
 impl Debug for Data {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if f.alternate() {
-            write!(f, "{}({:?})", self.definition.title, self.inner)
+            write!(f, "{}({:?})", self.def.title, self.inner)
         } else {
             write!(f, "{:?}", self.inner)
         }
@@ -61,8 +61,8 @@ impl From<Number> for Data {
 }
 
 impl DataTrait for Number {
-    fn type_definition(&self) -> DataTypeDefinition {
-        DataTypeDefinition {
+    fn type_def(&self) -> DataTypeDef {
+        DataTypeDef {
             title: "Number".to_string(),
             color: 55,
         }
