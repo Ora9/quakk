@@ -1,6 +1,10 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    rc::Rc,
+    sync::Mutex,
+};
 
-use anyhow::{Context, Ok, anyhow, bail};
+use anyhow::{Context, Ok, anyhow};
 
 use crate::{FunctionId, Node, NodeId, PortId};
 
@@ -42,7 +46,7 @@ impl FunctionDef {
 #[derive(Debug)]
 pub struct Function {
     def: FunctionDef,
-    nodes: HashMap<NodeId, Node>,
+    nodes: HashMap<NodeId, Rc<Mutex<Node>>>,
     edges: HashSet<Edge>,
     last_node_id: Option<NodeId>,
 }
@@ -79,7 +83,7 @@ impl Function {
     }
 
     fn insert_node(&mut self, node_id: NodeId, node: Node) {
-        self.nodes.insert(node_id, node);
+        self.nodes.insert(node_id, Rc::new(Mutex::new(node)));
     }
 
     pub fn patch(&mut self, source: PortId, target: PortId) -> Result<(), anyhow::Error> {
@@ -94,7 +98,11 @@ impl Function {
         }
     }
 
-    pub fn nodes(&self) -> &HashMap<NodeId, Node> {
+    pub fn node_for_id(&self, node_id: NodeId) -> Option<&Rc<Mutex<Node>>> {
+        self.nodes().get(&node_id)
+    }
+
+    pub fn nodes(&self) -> &HashMap<NodeId, Rc<Mutex<Node>>> {
         &self.nodes
     }
 
@@ -203,6 +211,15 @@ impl Graph {
             .edges()
             .iter()
             .find(|&edge| predicate(edge))
+    }
+
+    pub fn function_for_id(&self, function_id: FunctionId) -> Option<&Function> {
+        self.functions.get(&function_id)
+    }
+
+    pub fn node_for_id(&self, node_id: NodeId) -> Option<&Rc<Mutex<Node>>> {
+        let function = self.function_for_id(node_id.function_id())?;
+        function.node_for_id(node_id)
     }
 
     pub fn edge_for_port(&self, port_id: PortId) -> Option<&Edge> {

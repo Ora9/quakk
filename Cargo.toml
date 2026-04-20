@@ -16,7 +16,7 @@ default-members = ["crates/quakk_cli"]
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
-# unused = "allow"
+unused = "allow"
 # dead_code = "allow"
 
 [workspace.dependencies]

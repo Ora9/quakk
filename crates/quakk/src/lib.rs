@@ -1,7 +1,6 @@
 use std::{rc::Rc, sync::Mutex};
 
 mod id;
-use anyhow::Context;
 pub use id::*;
 
 mod data;
@@ -52,41 +51,9 @@ impl Quakk {
     }
 
     pub fn fold_for(&self, port_label: impl Into<PortLabel>) -> Result<Data, anyhow::Error> {
-        let a = self.graph(|graph| {
-            let main_function = graph.main_function_id();
-            let out_id = main_function.port_id(port_label);
+        let main_function = self.graph(|graph| graph.main_function_id());
 
-            let edge = graph
-                .edge_for_target_port(out_id)
-                .context("no node is patched to this function port")?;
-
-            Ok::<_, anyhow::Error>(())
-        })?;
-
-        // let (entry_vertex, entry_out_port) = self.graph(|graph| {
-        //     let main_function = graph.main_function_vertex();
-        //     let entry_out_port = main_function
-        //         .inbound_for(port_label)
-        //         .context("no node is patched to this function port")?;
-
-        //     let entry_vertex = graph
-        //         .vertex_for(entry_out_port.as_vertex_id())
-        //         .context("node should exist")?;
-
-        //     Ok::<_, anyhow::Error>((entry_vertex, entry_out_port))
-        // })?;
-
-        // let node_handle = entry_vertex
-        //     .node_handle()
-        //     .context("function to function not yet handled")?;
-
-        // node_handle.node().fold(
-        //     entry_out_port.port_label(),
-        //     LasyFold::new(entry_out_port.as_vertex_id(), self.graph.clone()),
-        // );
-
-        // main_function.
-
-        unimplemented!()
+        let lasy_fold = LasyFold::new(self.graph.clone(), main_function.into());
+        lasy_fold.get_in(port_label)
     }
 }

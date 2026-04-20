@@ -1,4 +1,4 @@
-use std::{any::Any, fmt::Debug};
+use std::{any::Any, fmt::Debug, ops::Deref};
 
 use anyhow::anyhow;
 
@@ -54,17 +54,43 @@ impl Debug for Data {
 
 pub type Number = f64;
 
-impl From<Number> for Data {
-    fn from(value: Number) -> Self {
-        Data::new(value)
-    }
-}
-
 impl DataTrait for Number {
     fn type_def(&self) -> DataTypeDef {
         DataTypeDef {
             title: "Number".to_string(),
             color: 55,
         }
+    }
+}
+
+impl From<Number> for Data {
+    fn from(value: Number) -> Self {
+        Data::new(value)
+    }
+}
+
+#[derive(Debug)]
+pub struct Text(String);
+
+impl DataTrait for Text {
+    fn type_def(&self) -> DataTypeDef {
+        DataTypeDef {
+            title: "Text".to_string(),
+            color: 64,
+        }
+    }
+}
+
+impl Deref for Text {
+    type Target = String;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl From<String> for Text {
+    fn from(value: String) -> Self {
+        Self(value)
     }
 }

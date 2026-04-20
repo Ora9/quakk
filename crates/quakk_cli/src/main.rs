@@ -9,9 +9,9 @@ fn main() -> Result<(), anyhow::Error> {
     qk.graph_mut(|graph| {
         let main_function = graph.main_function_id();
 
-        let main_num_a = graph.insert_in_main(NumericConstant::init().mutate("in", 2.0)?);
-        let main_num_b = graph.insert_in_main(NumericConstant::init().mutate("in", 3.0)?);
-        let main_num_c = graph.insert_in_main(NumericConstant::init().mutate("in", 5.0)?);
+        let main_num_a = graph.insert_in_main(NumericConstant::init().mutate("value", 2.0)?);
+        let main_num_b = graph.insert_in_main(NumericConstant::init().mutate("value", 3.0)?);
+        let main_num_c = graph.insert_in_main(NumericConstant::init().mutate("value", 5.0)?);
 
         let main_mult = graph.insert_in_main(
             Arithmetics::init().mutate("operation", ArithmeticsOperation::Multiplication)?,
@@ -30,8 +30,9 @@ fn main() -> Result<(), anyhow::Error> {
             color: 88,
         });
 
-        let patate_num_a = graph.insert_in(patate, NumericConstant::init().mutate("in", 8.55)?);
-        let patate_num_b = graph.insert_in(patate, NumericConstant::init().mutate("in", 1312.161)?);
+        let patate_num_a = graph.insert_in(patate, NumericConstant::init().mutate("value", 8.55)?);
+        let patate_num_b =
+            graph.insert_in(patate, NumericConstant::init().mutate("value", 1312.161)?);
 
         let patate_add = graph.insert_in(
             patate,
@@ -43,7 +44,7 @@ fn main() -> Result<(), anyhow::Error> {
         let _ = graph.patch(patate_num_a.out(), patate_add.port_id("term1"));
         let _ = graph.patch(patate_add.out(), main_function.port_id("number_out"));
 
-        dbg!(&graph);
+        // dbg!(&graph);
 
         //     let textconst = graph.insert(Box::new(TextConstant::new("Hello World!".to_string())));
         //     let textsplit = graph.insert(Box::new(TextSplit::default()));

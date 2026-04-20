@@ -1,4 +1,39 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
+
+pub enum FoldableId {
+    Node(NodeId),
+    Function(FunctionId),
+}
+
+impl FoldableId {
+    pub fn port_id(&self, port_label: impl Into<PortLabel>) -> PortId {
+        match self {
+            FoldableId::Node(node_id) => node_id.port_id(port_label),
+            FoldableId::Function(function_id) => function_id.port_id(port_label),
+        }
+    }
+}
+
+impl From<PortId> for FoldableId {
+    fn from(v: PortId) -> Self {
+        match v {
+            PortId::Node(node_port_id) => Self::Node(node_port_id.id()),
+            PortId::Function(function_port_id) => Self::Function(function_port_id.id()),
+        }
+    }
+}
+
+impl From<NodeId> for FoldableId {
+    fn from(v: NodeId) -> Self {
+        Self::Node(v)
+    }
+}
+
+impl From<FunctionId> for FoldableId {
+    fn from(v: FunctionId) -> Self {
+        Self::Function(v)
+    }
+}
 
 /// Identifies a [`Node`]
 ///
@@ -129,6 +164,12 @@ impl From<&str> for PortLabel {
     }
 }
 
+impl Display for PortLabel {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.label.as_str())
+    }
+}
+
 #[derive(Debug)]
 pub enum PortDirection {
     In,
@@ -140,11 +181,11 @@ pub trait Port {
     where
         Self: Sized;
 
-    fn from_label(port_label: PortLabel) -> Option<Self>
+    fn from_label(port_label: impl Into<PortLabel>) -> Option<Self>
     where
         Self: Sized,
     {
-        Self::from_str(port_label.as_str())
+        Self::from_str(port_label.into().as_str())
     }
 
     fn to_str(&self) -> &str;
@@ -166,7 +207,7 @@ impl PortId {
     pub fn function_id(&self) -> FunctionId {
         match self {
             Self::Node(node_port_id) => node_port_id.id().function_id(),
-            Self::Function(function_port_id) => function_port_id.function_id(),
+            Self::Function(function_port_id) => function_port_id.id(),
         }
     }
 
@@ -232,7 +273,7 @@ impl FunctionPortId {
         }
     }
 
-    pub fn function_id(&self) -> FunctionId {
+    pub fn id(&self) -> FunctionId {
         self.id
     }
 

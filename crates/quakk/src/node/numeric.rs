@@ -1,9 +1,11 @@
+use std::ops::{Add, Div, Mul, Sub};
+
 use anyhow::{Context, anyhow};
 
 use crate::{Data, LasyFold, Node, NodeTrait, Number, Port, PortDirection, PortLabel};
 
 pub enum NumericConstantPorts {
-    In,
+    Value,
     Out,
 }
 
@@ -13,7 +15,7 @@ impl Port for NumericConstantPorts {
         Self: Sized,
     {
         match str {
-            "in" => Some(Self::In),
+            "value" => Some(Self::Value),
             "out" => Some(Self::Out),
             _ => None,
         }
@@ -21,14 +23,14 @@ impl Port for NumericConstantPorts {
 
     fn to_str(&self) -> &str {
         match self {
-            Self::In => "in",
+            Self::Value => "value",
             Self::Out => "out",
         }
     }
 
     fn direction(&self) -> PortDirection {
         match self {
-            Self::In => PortDirection::In,
+            Self::Value => PortDirection::In,
             Self::Out => PortDirection::Out,
         }
     }
@@ -52,7 +54,7 @@ impl NodeTrait for NumericConstant {
         let port = NumericConstantPorts::from_label(port).context("not a valid port")?;
 
         match port {
-            NumericConstantPorts::In => {
+            NumericConstantPorts::Value => {
                 self.value = value.into_number().context("while trying to mutate")?;
                 Ok(())
             }
@@ -61,11 +63,11 @@ impl NodeTrait for NumericConstant {
     }
 
     fn fold(&mut self, _port: PortLabel, _lasy_fold: LasyFold) -> Result<Data, anyhow::Error> {
-        Err(anyhow!("ho that's unimplemented"))
+        Ok(self.value.into())
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum ArithmeticsOperation {
     Addition = 0,
     Substraction = 1,
@@ -96,9 +98,15 @@ impl TryFrom<Data> for ArithmeticsOperation {
     }
 }
 
-impl Into<Data> for ArithmeticsOperation {
-    fn into(self) -> Data {
-        Data::new(self as u32 as Number)
+impl From<ArithmeticsOperation> for Number {
+    fn from(value: ArithmeticsOperation) -> Self {
+        value as usize as Number
+    }
+}
+
+impl From<ArithmeticsOperation> for Data {
+    fn from(value: ArithmeticsOperation) -> Self {
+        Data::new(value as usize as Number)
     }
 }
 
@@ -187,16 +195,26 @@ impl NodeTrait for Arithmetics {
     }
 
     fn fold(&mut self, port: PortLabel, lasy_fold: LasyFold) -> Result<Data, anyhow::Error> {
-        if let Some(port) = ArithmeticsPorts::from_label(port)
-            && port != ArithmeticsPorts::Out
-        {
-            return Err(anyhow!("no a valid output port"));
+        match ArithmeticsPorts::from_label(port) {
+            Some(ArithmeticsPorts::Out) => {
+                let term1 = lasy_fold.get_in_as_number("term1").unwrap_or(self.term1);
+                let term2 = lasy_fold.get_in_as_number("term2").unwrap_or(self.term2);
+                let operation = lasy_fold
+                    .get_in_as_number("operation")
+                    .unwrap_or(self.operation.into())
+                    .try_into()
+                    .context("`operation` is not a valid arithmetic operation")?;
+
+                use ArithmeticsOperation::*;
+                let res = match operation {
+                    Addition => term1.add(term2),
+                    Substraction => term1.sub(term2),
+                    Multiplication => term1.mul(term2),
+                    Division => term1.div(term2),
+                };
+                Ok(res.into())
+            }
+            _ => Err(anyhow!("not a valid output port")),
         }
-
-        let _ = self.mutate("term1".into(), lasy_fold.get_in("term1")?);
-
-        dbg!(self);
-
-        Ok(Data::new(2.0))
     }
 }
