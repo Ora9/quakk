@@ -3,14 +3,14 @@ use anyhow::{Context, anyhow};
 use crate::{Data, LasyFold, Node, NodeTrait, Number, Port, PortDirection, PortLabel, Text};
 
 enum TextConstantPort {
-    Value,
+    Text,
     Out,
 }
 
 impl Port for TextConstantPort {
     fn direction(&self) -> PortDirection {
         match self {
-            TextConstantPort::Value => PortDirection::In,
+            TextConstantPort::Text => PortDirection::In,
             TextConstantPort::Out => PortDirection::Out,
         }
     }
@@ -20,7 +20,7 @@ impl Port for TextConstantPort {
         Self: Sized,
     {
         match str {
-            "value" => Some(TextConstantPort::Value),
+            "text" => Some(TextConstantPort::Text),
             "out" => Some(TextConstantPort::Out),
             _ => None,
         }
@@ -28,7 +28,7 @@ impl Port for TextConstantPort {
 
     fn to_str(&self) -> &str {
         match self {
-            TextConstantPort::Value => "value",
+            TextConstantPort::Text => "text",
             TextConstantPort::Out => "out",
         }
     }
@@ -55,7 +55,7 @@ impl NodeTrait for TextConstant {
         let port = TextConstantPort::from_label(port).context("not a valid port")?;
 
         match port {
-            TextConstantPort::Value => {
+            TextConstantPort::Text => {
                 self.value = value.into_text().context("could not mutate")?;
                 Ok(())
             }
@@ -141,14 +141,22 @@ impl NodeTrait for TextSplit {
     }
 
     fn fold(&mut self, port: PortLabel, lasy_fold: LasyFold) -> Result<Data, anyhow::Error> {
-        let port = TextSplitPort::from_label(port).context("not a valid port")?;
+        let port = TextSplitPort::from_label(port.clone())
+            .context(format!("`{}` is not a valid port", port.as_str()))?;
 
         match port {
             TextSplitPort::Start | TextSplitPort::End => {
-                let at = lasy_fold.get_in_as_number("at").unwrap_or(self.at);
+                let at = lasy_fold
+                    .get_in_as_number("at")
+                    .inspect_err(|err| {
+                        dbg!(&err);
+                    })
+                    .unwrap_or(self.at);
                 let text = lasy_fold
                     .get_in_as_text("text")
                     .unwrap_or(self.text.clone());
+
+                dbg!(at, &text);
 
                 let res = match port {
                     TextSplitPort::Start => text.split_at(at.into()).0,

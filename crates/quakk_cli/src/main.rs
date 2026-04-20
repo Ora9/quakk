@@ -1,6 +1,7 @@
 use quakk::{
-    Function, FunctionDef, NodeTrait, Number, Quakk,
+    Function, FunctionDef, NodeTrait, Number, Quakk, Text,
     numeric::{Arithmetics, ArithmeticsOperation, NumericConstant},
+    text::{TextConstant, TextSplit},
 };
 
 fn main() -> Result<(), anyhow::Error> {
@@ -9,50 +10,57 @@ fn main() -> Result<(), anyhow::Error> {
     qk.graph_mut(|graph| {
         let main_function = graph.main_function_id();
 
-        let main_num_a =
+        let num_a =
             graph.insert_in_main(NumericConstant::init().mutate("value", Number::from(2.0))?);
-        let main_num_b =
+        let num_b =
             graph.insert_in_main(NumericConstant::init().mutate("value", Number::from(3.0))?);
-        let main_num_c =
-            graph.insert_in_main(NumericConstant::init().mutate("value", Number::from(5.0))?);
+        let num_c =
+            graph.insert_in_main(NumericConstant::init().mutate("value", Number::from(1.0))?);
 
-        let main_mult = graph.insert_in_main(
+        let mult = graph.insert_in_main(
             Arithmetics::init().mutate("operation", ArithmeticsOperation::Multiplication)?,
         );
-        let main_add = graph.insert_in_main(
+        let add = graph.insert_in_main(
             Arithmetics::init().mutate("operation", ArithmeticsOperation::Addition)?,
         );
 
-        let _ = graph.patch(main_num_a.out(), main_mult.port_id("term1"));
-        let _ = graph.patch(main_num_b.out(), main_mult.port_id("term2"));
-        let _ = graph.patch(main_mult.out(), main_add.port_id("term1"));
-        let _ = graph.patch(main_num_c.out(), main_add.port_id("term2"));
+        let text_const =
+            graph.insert_in_main(TextConstant::init().mutate("text", Text::from("Hello World"))?);
 
-        let patate = graph.insert_function(FunctionDef {
-            name: "patate".to_string(),
-            color: 88,
-        });
+        let text_split = graph.insert_in_main(TextSplit::init().mutate("at", Number::from(0.0))?);
 
-        let patate_num_a = graph.insert_in(
-            patate,
-            NumericConstant::init().mutate("value", Number::from(8.55))?,
-        );
-        let patate_num_b = graph.insert_in(
-            patate,
-            NumericConstant::init().mutate("value", Number::from(1312.161))?,
-        );
+        let _ = graph.patch(num_a.out(), mult.port("term1"));
+        let _ = graph.patch(num_b.out(), mult.port("term2"));
 
-        let patate_add = graph.insert_in(
-            patate,
-            Arithmetics::init().mutate("operation", ArithmeticsOperation::Addition)?,
-        );
-        let _ = graph.patch(main_add.port_id("out"), main_function.port_id("number_out"));
+        let _ = graph.patch(mult.out(), add.port("term1"));
+        let _ = graph.patch(num_c.out(), add.port("term2"));
 
-        let _ = graph.patch(patate.port_id("number_in"), patate_add.port_id("term2"));
-        let _ = graph.patch(patate_num_a.out(), patate_add.port_id("term1"));
-        let _ = graph.patch(patate_add.out(), main_function.port_id("number_out"));
+        graph.patch(add.out(), text_split.port("at"));
+        graph.patch(text_const.out(), text_split.port("text"));
+        graph.patch(text_split.port("start"), main_function.port("text_out"));
 
-        // dbg!(&graph);
+        // let patate = graph.insert_function(FunctionDef {
+        //     name: "patate".to_string(),
+        //     color: 88,
+        // });
+
+        // let patate_num_a = graph.insert_in(
+        //     patate,
+        //     NumericConstant::init().mutate("value", Number::from(8.55))?,
+        // );
+        // let patate_num_b = graph.insert_in(
+        //     patate,
+        //     NumericConstant::init().mutate("value", Number::from(1312.161))?,
+        // );
+
+        // let patate_add = graph.insert_in(
+        //     patate,
+        //     Arithmetics::init().mutate("operation", ArithmeticsOperation::Addition)?,
+        // );
+
+        // let _ = graph.patch(patate.port("number_in"), patate_add.port("term2"));
+        // let _ = graph.patch(patate_num_a.out(), patate_add.port("term1"));
+        // let _ = graph.patch(patate_add.out(), main_function.port("number_out"));
 
         //     let textconst = graph.insert(Box::new(TextConstant::new("Hello World!".to_string())));
         //     let textsplit = graph.insert(Box::new(TextSplit::default()));
@@ -70,12 +78,12 @@ fn main() -> Result<(), anyhow::Error> {
         //     let num_out = graph.graph_out_in_id(&GraphOutIn::Numeric);
         //     let _ = graph.patch(textsplit.node_out_id(&TextSplitOut::Start), num_out);
 
-        //     dbg!(graph);
+        // dbg!(&graph);
         Ok::<(), anyhow::Error>(())
     })?;
 
     // let _ = qk.fold_for("number_out");
-    dbg!(qk.fold_for("number_out").unwrap());
+    dbg!(qk.fold_for("text_out"));
 
     Ok(())
 }

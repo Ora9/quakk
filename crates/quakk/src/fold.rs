@@ -47,11 +47,16 @@ impl LasyFold {
 
                 let foldable = FoldableId::Node(node_port_id.id());
                 let label = node_port_id.label().clone();
+                // only there for error management
+                let source = source.clone();
 
                 drop(graph);
 
                 let lasy_fold = LasyFold::new(self.graph.clone(), foldable);
-                node.lock().expect("the graph").fold(label, lasy_fold)
+                node.lock()
+                    .expect("this node has been poisoned !")
+                    .fold(label, lasy_fold)
+                    .context(format!("folding node with id {:?}", source))
             }
             PortId::Function(_function_port_id) => {
                 unimplemented!("ah ça c'est pas prévu")

@@ -1,5 +1,6 @@
 use std::fmt::{Debug, Display};
 
+#[derive(Debug)]
 pub enum FoldableId {
     Node(NodeId),
     Function(FunctionId),
@@ -8,8 +9,8 @@ pub enum FoldableId {
 impl FoldableId {
     pub fn port_id(&self, port_label: impl Into<PortLabel>) -> PortId {
         match self {
-            FoldableId::Node(node_id) => node_id.port_id(port_label),
-            FoldableId::Function(function_id) => function_id.port_id(port_label),
+            FoldableId::Node(node_id) => node_id.port(port_label),
+            FoldableId::Function(function_id) => function_id.port(port_label),
         }
     }
 }
@@ -77,7 +78,7 @@ impl NodeId {
         self.function_id
     }
 
-    pub fn port_id(&self, port_label: impl Into<PortLabel>) -> PortId {
+    pub fn port(&self, port_label: impl Into<PortLabel>) -> PortId {
         PortId::Node(self.node_port_id(port_label))
     }
 
@@ -126,7 +127,7 @@ impl FunctionId {
         self.id.checked_add(1).map(|id| FunctionId { id })
     }
 
-    pub fn port_id(&self, port_label: impl Into<PortLabel>) -> PortId {
+    pub fn port(&self, port_label: impl Into<PortLabel>) -> PortId {
         PortId::Function(self.as_function_port_id(port_label))
     }
 
