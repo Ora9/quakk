@@ -80,6 +80,12 @@ impl Deref for Number {
     }
 }
 
+impl Default for Number {
+    fn default() -> Self {
+        Self(f64::default())
+    }
+}
+
 impl From<Number> for Data {
     fn from(value: Number) -> Self {
         Data::new(value)
@@ -95,6 +101,12 @@ impl From<f64> for Number {
 impl From<Number> for f64 {
     fn from(value: Number) -> Self {
         value.0
+    }
+}
+
+impl From<Number> for usize {
+    fn from(value: Number) -> Self {
+        value.0 as usize
     }
 }
 
@@ -132,6 +144,12 @@ impl Div for Number {
 
 #[derive(Debug, Clone)]
 pub struct Text(String);
+
+impl Default for Text {
+    fn default() -> Self {
+        Self(String::default())
+    }
+}
 
 impl DataTrait for Text {
     fn type_def(&self) -> DataTypeDef {

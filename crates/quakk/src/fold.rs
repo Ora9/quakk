@@ -2,7 +2,7 @@ use std::{rc::Rc, sync::Mutex};
 
 use anyhow::Context;
 
-use crate::{Data, FoldableId, Graph, Number, PortId, PortLabel};
+use crate::{Data, FoldableId, Graph, Number, PortId, PortLabel, Text};
 
 pub enum FoldResult {
     Ok(Data),
@@ -73,5 +73,18 @@ impl LasyFold {
             .context(format!("`{}` is not a valid number", error_label))?;
 
         Ok(num)
+    }
+
+    pub fn get_in_as_text(&self, port_label: impl Into<PortLabel>) -> Result<Text, anyhow::Error> {
+        let port_label = port_label.into();
+        let error_label = port_label.as_str();
+
+        let text = self
+            .get_in(port_label.clone())
+            .context(format!("could not get `{}`", error_label))?
+            .into_text()
+            .context(format!("`{}` is not a valid text", error_label))?;
+
+        Ok(text)
     }
 }
