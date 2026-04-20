@@ -5,6 +5,7 @@ use anyhow::Context;
 use crate::{Data, LasyFold, PortLabel};
 
 pub mod numeric;
+pub mod text;
 
 #[derive(Debug)]
 pub struct Node {

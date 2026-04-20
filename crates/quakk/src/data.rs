@@ -1,6 +1,6 @@
 use std::{any::Any, fmt::Debug, ops::Deref};
 
-use anyhow::anyhow;
+use anyhow::{Context, anyhow};
 
 #[derive(Debug)]
 pub struct DataTypeDef {
@@ -27,7 +27,11 @@ impl Data {
     }
 
     pub fn into_number(self) -> Result<Number, anyhow::Error> {
-        self.downcast::<Number>().ok_or(anyhow!("not a number"))
+        self.downcast::<Number>().context("not a number")
+    }
+
+    pub fn into_text(self) -> Result<Text, anyhow::Error> {
+        self.downcast::<Text>().context("not a text")
     }
 
     pub fn downcast<T: DataTrait>(self) -> Option<T> {
@@ -92,5 +96,17 @@ impl Deref for Text {
 impl From<String> for Text {
     fn from(value: String) -> Self {
         Self(value)
+    }
+}
+
+impl From<&str> for Text {
+    fn from(value: &str) -> Self {
+        Self(value.to_string())
+    }
+}
+
+impl From<Text> for Data {
+    fn from(value: Text) -> Self {
+        Data::new(value)
     }
 }
