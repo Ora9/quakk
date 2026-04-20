@@ -1,4 +1,8 @@
-use std::{any::Any, fmt::Debug, ops::Deref};
+use std::{
+    any::Any,
+    fmt::Debug,
+    ops::{Add, Deref, Div, Mul, Sub},
+};
 
 use anyhow::{Context, anyhow};
 
@@ -48,15 +52,17 @@ impl Data {
 
 impl Debug for Data {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if f.alternate() {
-            write!(f, "{}({:?})", self.def.title, self.inner)
-        } else {
-            write!(f, "{:?}", self.inner)
-        }
+        write!(f, "{:?}", self.inner)
+
+        // if f.alternate() {
+        //     write!(f, "{}({:?})", self.def.title, self.inner)
+        // } else {
+        // }
     }
 }
 
-pub type Number = f64;
+#[derive(Debug, Clone, Copy)]
+pub struct Number(f64);
 
 impl DataTrait for Number {
     fn type_def(&self) -> DataTypeDef {
@@ -67,13 +73,64 @@ impl DataTrait for Number {
     }
 }
 
+impl Deref for Number {
+    type Target = f64;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 impl From<Number> for Data {
     fn from(value: Number) -> Self {
         Data::new(value)
     }
 }
 
-#[derive(Debug)]
+impl From<f64> for Number {
+    fn from(value: f64) -> Self {
+        Number(value)
+    }
+}
+
+impl From<Number> for f64 {
+    fn from(value: Number) -> Self {
+        value.0
+    }
+}
+
+impl Add for Number {
+    type Output = Number;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        self.0.add(rhs.0).into()
+    }
+}
+
+impl Sub for Number {
+    type Output = Number;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        self.0.sub(rhs.0).into()
+    }
+}
+
+impl Mul for Number {
+    type Output = Number;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        self.0.mul(rhs.0).into()
+    }
+}
+
+impl Div for Number {
+    type Output = Number;
+
+    fn div(self, rhs: Self) -> Self::Output {
+        self.0.div(rhs.0).into()
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Text(String);
 
 impl DataTrait for Text {

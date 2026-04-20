@@ -43,7 +43,7 @@ pub struct NumericConstant {
 
 impl NodeTrait for NumericConstant {
     fn init() -> Node {
-        Node::new(Box::new(NumericConstant { value: 2.0 }))
+        Node::new(Box::new(NumericConstant { value: 2.0.into() }))
     }
 
     fn title(&self) -> &str {
@@ -81,11 +81,11 @@ impl TryFrom<Number> for ArithmeticsOperation {
     fn try_from(value: Number) -> Result<Self, Self::Error> {
         use ArithmeticsOperation::*;
 
-        match value as u32 {
-            x if x == Addition as u32 => Ok(Addition),
-            x if x == Substraction as u32 => Ok(Substraction),
-            x if x == Multiplication as u32 => Ok(Multiplication),
-            x if x == Division as u32 => Ok(Division),
+        match *value as isize {
+            x if x == Addition as isize => Ok(Addition),
+            x if x == Substraction as isize => Ok(Substraction),
+            x if x == Multiplication as isize => Ok(Multiplication),
+            x if x == Division as isize => Ok(Division),
             _ => Err(anyhow!("not a valid arithmetic operation")),
         }
     }
@@ -100,13 +100,13 @@ impl TryFrom<Data> for ArithmeticsOperation {
 
 impl From<ArithmeticsOperation> for Number {
     fn from(value: ArithmeticsOperation) -> Self {
-        value as usize as Number
+        (value as isize as f64).into()
     }
 }
 
 impl From<ArithmeticsOperation> for Data {
     fn from(value: ArithmeticsOperation) -> Self {
-        Data::new(value as usize as Number)
+        Data::new(Number::from(value))
     }
 }
 
@@ -163,8 +163,8 @@ impl NodeTrait for Arithmetics {
     {
         Node::new(Box::new(Arithmetics {
             operation: ArithmeticsOperation::Addition,
-            term1: 0.0,
-            term2: 0.0,
+            term1: 0.0.into(),
+            term2: 0.0.into(),
         }))
     }
 
@@ -206,12 +206,13 @@ impl NodeTrait for Arithmetics {
                     .context("`operation` is not a valid arithmetic operation")?;
 
                 use ArithmeticsOperation::*;
-                let res = match operation {
+                let res: Number = match operation {
                     Addition => term1.add(term2),
                     Substraction => term1.sub(term2),
                     Multiplication => term1.mul(term2),
                     Division => term1.div(term2),
                 };
+
                 Ok(res.into())
             }
             _ => Err(anyhow!("not a valid output port")),
