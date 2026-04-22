@@ -8,6 +8,7 @@ use anyhow::{Context, Ok, anyhow};
 
 use crate::{FunctionId, Node, NodeId, PortId};
 
+/// An edge between ports, either a node or function port
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Edge {
     source: PortId,
@@ -15,19 +16,23 @@ pub struct Edge {
 }
 
 impl Edge {
+    /// New edge between to ports
     fn new(source: PortId, target: PortId) -> Self {
         Self { source, target }
     }
 
+    /// Return the source `PortId` of the edge
     pub fn source(&self) -> &PortId {
         &self.source
     }
 
+    /// Return the target `PortId` of the edge
     pub fn target(&self) -> &PortId {
         &self.target
     }
 }
 
+/// Function definition passed to `Function::new()`
 #[derive(Debug)]
 pub struct FunctionDef {
     pub name: String,
@@ -35,6 +40,7 @@ pub struct FunctionDef {
 }
 
 impl FunctionDef {
+    /// Generate a `FunctionDef` based on a given `FunctionId` ()
     fn default_for(function_id: FunctionId) -> Self {
         FunctionDef {
             name: format!("Function-{}", function_id.as_u64()),
@@ -164,7 +170,8 @@ impl Graph {
         self.insert_in(main_function_id, node)
     }
 
-    /// Insert the given node into the specified function, or create the function if it does not exists
+    /// Insert the given node into the specified function, or create the function with a default
+    /// name if it does not exists
     pub fn insert_in(&mut self, function_id: FunctionId, node: Node) -> NodeId {
         let function = self
             .functions
@@ -178,6 +185,7 @@ impl Graph {
         node_id
     }
 
+    /// Create a new function based on the given [`FunctionDef`], and return its id
     pub fn insert_function(&mut self, function_def: FunctionDef) -> FunctionId {
         let function_id = self.next_function_id();
 
@@ -187,6 +195,7 @@ impl Graph {
         function_id
     }
 
+    /// Patch two ports
     pub fn patch(
         &mut self,
         source: impl Into<PortId>,
