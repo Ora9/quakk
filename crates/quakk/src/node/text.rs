@@ -48,7 +48,7 @@ impl NodeTrait for TextConstant {
     where
         Self: Sized,
     {
-        Node::new(Box::new(TextConstant::default()))
+        Node::new(TextConstant::default())
     }
 
     fn mutate(&mut self, port: PortLabel, value: Data) -> Result<(), anyhow::Error> {
@@ -121,7 +121,7 @@ impl NodeTrait for TextSplit {
     where
         Self: Sized,
     {
-        Node::new(Box::new(Self::default()))
+        Node::new(Self::default())
     }
 
     fn mutate(&mut self, port: PortLabel, value: Data) -> Result<(), anyhow::Error> {

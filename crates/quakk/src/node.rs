@@ -13,8 +13,10 @@ pub struct Node {
 }
 
 impl Node {
-    pub fn new(node: Box<dyn NodeTrait>) -> Self {
-        Node { inner: node }
+    pub fn new(node: impl NodeTrait + 'static) -> Self {
+        Node {
+            inner: Box::new(node),
+        }
     }
 
     pub fn mutate(

@@ -43,7 +43,7 @@ pub struct NumericConstant {
 
 impl NodeTrait for NumericConstant {
     fn init() -> Node {
-        Node::new(Box::new(NumericConstant { value: 2.0.into() }))
+        Node::new(NumericConstant { value: 2.0.into() })
     }
 
     fn title(&self) -> &str {
@@ -161,11 +161,11 @@ impl NodeTrait for Arithmetics {
     where
         Self: Sized,
     {
-        Node::new(Box::new(Arithmetics {
+        Node::new(Arithmetics {
             operation: ArithmeticsOperation::Addition,
             term1: 0.0.into(),
             term2: 0.0.into(),
-        }))
+        })
     }
 
     fn title(&self) -> &str {
