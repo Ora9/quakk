@@ -5,21 +5,9 @@ use std::{
     sync::Mutex,
 };
 
-use crate::{Edge, FunctionId, Node, NodeId, PortId};
+use crate::{Edge, FunctionId, GraphError, Node, NodeId, PatchError, PortId};
 use anyhow::anyhow;
 use thiserror::Error;
-
-#[derive(Debug, Error)]
-#[non_exhaustive]
-pub enum FunctionPatchError {
-    #[error(
-        "a patch cannot be done between nodes of two differents functions, source id `{source}` != target id `{target}`"
-    )]
-    NotSameFunction {
-        r#source: FunctionId,
-        target: FunctionId,
-    },
-}
 
 /// Function definition passed to `Function::new()`
 #[derive(Debug)]
@@ -81,15 +69,11 @@ impl Function {
         self.nodes.insert(node_id, Rc::new(Mutex::new(node)));
     }
 
-    pub(super) fn patch(
-        &mut self,
-        source: PortId,
-        target: PortId,
-    ) -> Result<(), FunctionPatchError> {
+    pub(super) fn patch(&mut self, source: PortId, target: PortId) -> Result<(), PatchError> {
         // TODO: should make sure that the port_id we are given is in our function
 
         if source.function_id() != target.function_id() {
-            Err(FunctionPatchError::NotSameFunction {
+            Err(PatchError::NotSameFunction {
                 source: source.function_id(),
                 target: target.function_id(),
             })
@@ -100,8 +84,10 @@ impl Function {
         }
     }
 
-    pub(super) fn node_for_id(&self, node_id: NodeId) -> Option<&Rc<Mutex<Node>>> {
-        self.nodes().get(&node_id)
+    pub(super) fn node_for_id(&self, node_id: NodeId) -> Result<&Rc<Mutex<Node>>, GraphError> {
+        self.nodes
+            .get(&node_id)
+            .ok_or(GraphError::NodeNotFound(node_id))
     }
 
     pub(super) fn nodes(&self) -> &HashMap<NodeId, Rc<Mutex<Node>>> {

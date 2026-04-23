@@ -4,6 +4,8 @@ use anyhow::Context;
 
 use crate::{Data, FoldableId, Graph, Number, PortId, PortLabel, Text};
 
+pub enum FoldError {}
+
 pub enum FoldResult {
     Ok(Data),
     Error,

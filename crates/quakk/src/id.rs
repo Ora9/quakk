@@ -95,6 +95,12 @@ impl NodeId {
     }
 }
 
+impl Display for NodeId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "fn{}-nd{}", self.function_id.id, self.node_id)
+    }
+}
+
 /// Identifies a [`Function`]
 ///
 /// Each new function declared in a [`Graph `] is assigned a new random id
@@ -144,7 +150,7 @@ impl Debug for FunctionId {
 
 impl Display for FunctionId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", &self.id)
+        write!(f, "fn{}", self.id)
     }
 }
 
@@ -231,6 +237,25 @@ impl PortId {
 
     pub fn is_function(&self) -> bool {
         matches!(*self, Self::Function(_))
+    }
+}
+
+/// fn5-nd87-in
+/// fn2-number_in
+impl Display for PortId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Function(function_port_id) => {
+                write!(f, "{}-{}", function_port_id.id, function_port_id.label)
+            }
+            Self::Node(node_port_id) => {
+                write!(
+                    f,
+                    "{}-{}-{}",
+                    node_port_id.id.function_id, node_port_id.id.node_id, node_port_id.label
+                )
+            }
+        }
     }
 }
 

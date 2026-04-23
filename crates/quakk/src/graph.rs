@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc, sync::Mutex};
+use std::{collections::HashMap, error, fmt::Display, rc::Rc, sync::Mutex};
 
 use anyhow::Context;
 use thiserror::Error;
@@ -12,11 +12,32 @@ pub use function::*;
 #[non_exhaustive]
 pub enum GraphError {
     #[error("could not patch")]
-    PatchError(#[from] FunctionPatchError),
+    PatchError(#[from] PatchError),
 
     #[error("function `{0}` not found")]
     FunctionNotFound(FunctionId),
+
+    #[error("node `{0}` not found")]
+    NodeNotFound(NodeId),
+
+    #[error("could not find edge for {0}`")]
+    EdgeNotFound(PortId),
 }
+
+// #[derive(Debug)]
+// pub enum EdgeEnd {
+//     Source,
+//     Target,
+// }
+
+// impl Display for EdgeEnd {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         match self {
+//             Self::Source => write!(f, "source"),
+//             Self::Target => write!(f, "target"),
+//         }
+//     }
+// }
 
 /// An edge between ports, either a node or function port
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -124,6 +145,18 @@ impl Graph {
     }
 }
 
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum PatchError {
+    #[error(
+        "a patch cannot be done between nodes of two differents functions, source id `{source}` != target id `{target}`"
+    )]
+    NotSameFunction {
+        r#source: FunctionId,
+        target: FunctionId,
+    },
+}
+
 /// # Patching
 impl Graph {
     /// Patch two ports
@@ -135,44 +168,65 @@ impl Graph {
         let source: PortId = source.into();
         let target: PortId = target.into();
 
-        let function = self
-            .functions
-            .get_mut(&source.function_id())
-            .ok_or(GraphError::FunctionNotFound(source.function_id()))?;
+        let function: &mut Function = self.mut_function_for_id(source.function_id())?;
+
+        // let function = self
+        //     .functions
+        //     .get_mut(&source.function_id())
+        //     .ok_or(GraphError::FunctionNotFound(source.function_id()))?;
 
         function.patch(source, target).map_err(|err| err.into())
     }
+}
 
-    fn find_edge(&self, port_id: &PortId, predicate: impl Fn(&Edge) -> bool) -> Option<&Edge> {
+impl Graph {
+    fn find_edge(
+        &self,
+        port_id: &PortId,
+        predicate: impl Fn(&Edge) -> bool,
+    ) -> Result<&Edge, GraphError> {
         // TODO: lol that's kinda ugly that we call our predicate in another anonymous closure,
         // can't we directly take a closure that would be use by find() ?
         self.functions
-            .get(&port_id.function_id())?
+            .get(&port_id.function_id())
+            .ok_or(GraphError::FunctionNotFound(port_id.function_id()))?
             .edges()
             .iter()
             .find(|&edge| predicate(edge))
+            .ok_or(GraphError::EdgeNotFound(port_id.clone()))
     }
 
-    pub fn function_for_id(&self, function_id: FunctionId) -> Option<&Function> {
-        self.functions.get(&function_id)
+    pub fn function_for_id(&self, function_id: FunctionId) -> Result<&Function, GraphError> {
+        self.functions
+            .get(&function_id)
+            .ok_or(GraphError::FunctionNotFound(function_id))
     }
 
-    pub fn node_for_id(&self, node_id: NodeId) -> Option<&Rc<Mutex<Node>>> {
+    pub fn mut_function_for_id(
+        &mut self,
+        function_id: FunctionId,
+    ) -> Result<&mut Function, GraphError> {
+        self.functions
+            .get_mut(&function_id)
+            .ok_or(GraphError::FunctionNotFound(function_id))
+    }
+
+    pub fn node_for_id(&self, node_id: NodeId) -> Result<&Rc<Mutex<Node>>, GraphError> {
         let function = self.function_for_id(node_id.function_id())?;
         function.node_for_id(node_id)
     }
 
-    pub fn edge_for_port(&self, port_id: PortId) -> Option<&Edge> {
+    pub fn edge_for_port(&self, port_id: PortId) -> Result<&Edge, GraphError> {
         self.find_edge(&port_id, |edge| {
             *edge.source() == port_id || *edge.target() == port_id
         })
     }
 
-    pub fn edge_for_source_port(&self, port_id: PortId) -> Option<&Edge> {
+    pub fn edge_for_source_port(&self, port_id: PortId) -> Result<&Edge, GraphError> {
         self.find_edge(&port_id, |edge| *edge.source() == port_id)
     }
 
-    pub fn edge_for_target_port(&self, port_id: PortId) -> Option<&Edge> {
+    pub fn edge_for_target_port(&self, port_id: PortId) -> Result<&Edge, GraphError> {
         self.find_edge(&port_id, |edge| *edge.target() == port_id)
     }
 
