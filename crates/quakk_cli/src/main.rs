@@ -8,6 +8,11 @@ fn main() -> Result<(), anyhow::Error> {
     let mut qk = Quakk::new();
 
     qk.graph_mut(|graph| {
+        let patate = graph.insert_function(FunctionDef {
+            name: "patate".to_string(),
+            color: 88,
+        });
+
         let main_function = graph.main_function_id();
 
         let num_a =
@@ -29,20 +34,15 @@ fn main() -> Result<(), anyhow::Error> {
 
         let text_split = graph.insert_in_main(TextSplit::init().mutate("at", Number::from(0.0))?);
 
-        let _ = graph.patch(num_a.out(), mult.port("term1"));
-        let _ = graph.patch(num_b.out(), mult.port("term2"));
+        graph.patch(num_a.out(), mult.port("term1"))?;
+        graph.patch(num_b.out(), mult.port("term2"))?;
 
-        let _ = graph.patch(mult.out(), add.port("term1"));
-        let _ = graph.patch(num_c.out(), add.port("term2"));
+        graph.patch(mult.out(), add.port("term1"))?;
+        graph.patch(num_c.out(), add.port("term2"))?;
 
-        graph.patch(add.out(), text_split.port("at"));
-        graph.patch(text_const.out(), text_split.port("text"));
-        graph.patch(text_split.port("start"), main_function.port("text_out"));
-
-        // let patate = graph.insert_function(FunctionDef {
-        //     name: "patate".to_string(),
-        //     color: 88,
-        // });
+        graph.patch(add.out(), text_split.port("at"))?;
+        graph.patch(text_const.out(), text_split.port("text"))?;
+        graph.patch(text_split.port("start"), main_function.port("text_out"))?;
 
         // let patate_num_a = graph.insert_in(
         //     patate,

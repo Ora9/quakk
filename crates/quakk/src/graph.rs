@@ -1,12 +1,22 @@
-use std::{
-    collections::{HashMap, HashSet},
-    rc::Rc,
-    sync::Mutex,
-};
+use std::{collections::HashMap, rc::Rc, sync::Mutex};
 
-use anyhow::{Context, Ok, anyhow};
+use anyhow::Context;
+use thiserror::Error;
 
 use crate::{FunctionId, Node, NodeId, PortId};
+
+mod function;
+pub use function::*;
+
+#[derive(Debug, Error)]
+#[non_exhaustive]
+pub enum GraphError {
+    #[error("could not patch")]
+    PatchError(#[from] FunctionPatchError),
+
+    #[error("function `{0}` not found")]
+    FunctionNotFound(FunctionId),
+}
 
 /// An edge between ports, either a node or function port
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -32,92 +42,7 @@ impl Edge {
     }
 }
 
-/// Function definition passed to `Function::new()`
-#[derive(Debug)]
-pub struct FunctionDef {
-    pub name: String,
-    pub color: u32,
-}
-
-impl FunctionDef {
-    /// Generate a `FunctionDef` based on a given `FunctionId` ()
-    fn default_for(function_id: FunctionId) -> Self {
-        FunctionDef {
-            name: format!("Function-{}", function_id.as_u64()),
-            color: 0,
-        }
-    }
-}
-
-#[derive(Debug)]
-pub struct Function {
-    def: FunctionDef,
-    nodes: HashMap<NodeId, Rc<Mutex<Node>>>,
-    edges: HashSet<Edge>,
-    last_node_id: Option<NodeId>,
-}
-
-impl Function {
-    pub fn new(def: FunctionDef) -> Self {
-        Self {
-            def,
-            nodes: HashMap::new(),
-            edges: HashSet::new(),
-
-            last_node_id: None,
-        }
-    }
-
-    fn next_node_id(&mut self, function_id: FunctionId) -> NodeId {
-        let next_node_id = self
-            .last_node_id
-            .unwrap_or(NodeId::zero(function_id))
-            .checked_increment()
-            .expect("node_id has overflown: too much nodes");
-
-        self.last_node_id = Some(next_node_id);
-
-        if !self.nodes.contains_key(&next_node_id) {
-            next_node_id
-        } else {
-            eprintln!(
-                "failed attempt to create a new id in function #{:?} (id already exists), retrying..",
-                function_id
-            );
-            self.next_node_id(function_id)
-        }
-    }
-
-    fn insert_node(&mut self, node_id: NodeId, node: Node) {
-        self.nodes.insert(node_id, Rc::new(Mutex::new(node)));
-    }
-
-    pub fn patch(&mut self, source: PortId, target: PortId) -> Result<(), anyhow::Error> {
-        // TODO: should make sure that the port_id we are given is in our function
-        if source.function_id() != target.function_id() {
-            Err(anyhow!("can't patch in two different function"))
-        } else {
-            let edge = Edge::new(source, target);
-            self.edges.insert(edge);
-
-            Ok(())
-        }
-    }
-
-    pub fn node_for_id(&self, node_id: NodeId) -> Option<&Rc<Mutex<Node>>> {
-        self.nodes().get(&node_id)
-    }
-
-    pub fn nodes(&self) -> &HashMap<NodeId, Rc<Mutex<Node>>> {
-        &self.nodes
-    }
-
-    pub fn edges(&self) -> &HashSet<Edge> {
-        &self.edges
-    }
-}
-
-/// A `Graph` hold nodes and handle patches (connection between nodes)
+/// A `Graph` hold functions and nodes, it handle patches (connection between nodes)
 #[derive(Debug)]
 pub struct Graph {
     functions: HashMap<FunctionId, Function>,
@@ -162,7 +87,10 @@ impl Graph {
             self.next_function_id()
         }
     }
+}
 
+/// # Insertion
+impl Graph {
     /// Insert the given node in the main function
     pub fn insert_in_main(&mut self, node: Node) -> NodeId {
         let main_function_id = self.main_function_id();
@@ -194,22 +122,25 @@ impl Graph {
 
         function_id
     }
+}
 
+/// # Patching
+impl Graph {
     /// Patch two ports
     pub fn patch(
         &mut self,
         source: impl Into<PortId>,
         target: impl Into<PortId>,
-    ) -> Result<(), anyhow::Error> {
+    ) -> Result<(), GraphError> {
         let source: PortId = source.into();
         let target: PortId = target.into();
 
         let function = self
             .functions
             .get_mut(&source.function_id())
-            .context("given nodes doesn't reside in an existing function")?;
+            .ok_or(GraphError::FunctionNotFound(source.function_id()))?;
 
-        function.patch(source, target)
+        function.patch(source, target).map_err(|err| err.into())
     }
 
     fn find_edge(&self, port_id: &PortId, predicate: impl Fn(&Edge) -> bool) -> Option<&Edge> {

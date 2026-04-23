@@ -4550,6 +4550,7 @@ name = "quakk"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "thiserror 2.0.18",
 ]
 
 [[package]]

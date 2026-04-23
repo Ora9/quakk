@@ -156,7 +156,7 @@ impl NodeTrait for TextSplit {
                     .get_in_as_text("text")
                     .unwrap_or(self.text.clone());
 
-                dbg!(at, &text);
+                // dbg!(at, &text);
 
                 let res = match port {
                     TextSplitPort::Start => text.split_at(at.into()).0,
