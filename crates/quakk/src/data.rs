@@ -1,14 +1,36 @@
 use std::{
     any::Any,
-    fmt::Debug,
+    fmt::{Debug, Display},
     ops::{Add, Deref, Div, Mul, Sub},
 };
 
 use anyhow::{Context, anyhow};
+use thiserror::Error;
+
+#[derive(Debug, Error)]
+pub enum DataError {
+    #[error("type mismatch: expected a {expected}")]
+    TypeMismatch { expected: DataTypeName },
+}
+
+#[derive(Debug)]
+pub struct DataTypeName(String);
+
+impl From<&str> for DataTypeName {
+    fn from(value: &str) -> Self {
+        Self(value.to_string())
+    }
+}
+
+impl Display for DataTypeName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.0)
+    }
+}
 
 #[derive(Debug)]
 pub struct DataTypeDef {
-    pub title: String,
+    pub name: DataTypeName,
     pub color: u32,
 }
 
@@ -30,12 +52,16 @@ impl Data {
         }
     }
 
-    pub fn into_number(self) -> Result<Number, anyhow::Error> {
-        self.downcast::<Number>().context("not a number")
+    pub fn into_number(self) -> Result<Number, DataError> {
+        self.downcast::<Number>().ok_or(DataError::TypeMismatch {
+            expected: Number::TYPE_NAME.into(),
+        })
     }
 
-    pub fn into_text(self) -> Result<Text, anyhow::Error> {
-        self.downcast::<Text>().context("not a text")
+    pub fn into_text(self) -> Result<Text, DataError> {
+        self.downcast::<Text>().ok_or(DataError::TypeMismatch {
+            expected: Text::TYPE_NAME.into(),
+        })
     }
 
     pub fn downcast<T: DataTrait>(self) -> Option<T> {
@@ -53,22 +79,22 @@ impl Data {
 impl Debug for Data {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.inner)
-
-        // if f.alternate() {
-        //     write!(f, "{}({:?})", self.def.title, self.inner)
-        // } else {
-        // }
     }
 }
 
 #[derive(Debug, Clone, Copy)]
 pub struct Number(f64);
 
+impl Number {
+    const TYPE_NAME: &str = "Number";
+    const TYPE_COLOR: u32 = 35;
+}
+
 impl DataTrait for Number {
     fn type_def(&self) -> DataTypeDef {
         DataTypeDef {
-            title: "Number".to_string(),
-            color: 55,
+            name: Self::TYPE_NAME.into(),
+            color: Self::TYPE_COLOR,
         }
     }
 }
@@ -142,20 +168,19 @@ impl Div for Number {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Default, Clone)]
 pub struct Text(String);
 
-impl Default for Text {
-    fn default() -> Self {
-        Self(String::default())
-    }
+impl Text {
+    const TYPE_NAME: &str = "Text";
+    const TYPE_COLOR: u32 = 64;
 }
 
 impl DataTrait for Text {
     fn type_def(&self) -> DataTypeDef {
         DataTypeDef {
-            title: "Text".to_string(),
-            color: 64,
+            name: Self::TYPE_NAME.into(),
+            color: Self::TYPE_COLOR,
         }
     }
 }
