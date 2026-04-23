@@ -1,16 +1,21 @@
 use std::{rc::Rc, sync::Mutex};
 
 use anyhow::Context;
+use thiserror::Error;
 
 use crate::{Data, FoldableId, Graph, Number, PortId, PortLabel, Text};
 
-pub enum FoldError {}
-
-pub enum FoldResult {
-    Ok(Data),
-    Error,
-    Unpatched,
+#[derive(Debug, Error)]
+pub enum FoldError {
+    #[error("internal error: {0}")]
+    InternalError(String),
 }
+
+// pub enum FoldResult {
+//     Ok(Data),
+//     Error,
+//     Unpatched,
+// }
 
 pub struct LasyFold {
     current_foldable: FoldableId,
@@ -26,18 +31,17 @@ impl LasyFold {
     }
 
     pub fn get_in(&self, port_label: impl Into<PortLabel>) -> Result<Data, anyhow::Error> {
-        let graph = self
-            .graph
-            .lock()
-            .expect("the graph has been poisoned, who was it!?");
+        let graph = self.graph.lock().map_err(|_| {
+            FoldError::InternalError("the graph has been poisoned, who was it!?".to_string())
+        })?;
 
         let target = self.current_foldable.port_id(port_label);
         let source = graph
-            .edge_for_target_port(target.clone())
-            .context(format!(
-                "could not get the pointed edge ({:?})",
-                target.clone()
-            ))?
+            .edge_for_target_port(target.clone())?
+            // .context(format!(
+            //     "could not get the pointed edge ({:?})",
+            //     target.clone()
+            // ))?
             .source();
 
         match source {
