@@ -24,21 +24,6 @@ pub enum GraphError {
     EdgeNotFound(PortId),
 }
 
-// #[derive(Debug)]
-// pub enum EdgeEnd {
-//     Source,
-//     Target,
-// }
-
-// impl Display for EdgeEnd {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         match self {
-//             Self::Source => write!(f, "source"),
-//             Self::Target => write!(f, "target"),
-//         }
-//     }
-// }
-
 /// An edge between ports, either a node or function port
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Edge {
@@ -180,22 +165,6 @@ impl Graph {
 }
 
 impl Graph {
-    fn find_edge(
-        &self,
-        port_id: &PortId,
-        predicate: impl Fn(&Edge) -> bool,
-    ) -> Result<&Edge, GraphError> {
-        // TODO: lol that's kinda ugly that we call our predicate in another anonymous closure,
-        // can't we directly take a closure that would be use by find() ?
-        self.functions
-            .get(&port_id.function_id())
-            .ok_or(GraphError::FunctionNotFound(port_id.function_id()))?
-            .edges()
-            .iter()
-            .find(|&edge| predicate(edge))
-            .ok_or(GraphError::EdgeNotFound(port_id.clone()))
-    }
-
     pub fn function_for_id(&self, function_id: FunctionId) -> Result<&Function, GraphError> {
         self.functions
             .get(&function_id)
@@ -214,6 +183,22 @@ impl Graph {
     pub fn node_for_id(&self, node_id: NodeId) -> Result<&Rc<Mutex<Node>>, GraphError> {
         let function = self.function_for_id(node_id.function_id())?;
         function.node_for_id(node_id)
+    }
+
+    fn find_edge(
+        &self,
+        port_id: &PortId,
+        predicate: impl Fn(&Edge) -> bool,
+    ) -> Result<&Edge, GraphError> {
+        // TODO: lol that's kinda ugly that we call our predicate in another anonymous closure,
+        // can't we directly take a closure that would be use by find() ?
+        self.functions
+            .get(&port_id.function_id())
+            .ok_or(GraphError::FunctionNotFound(port_id.function_id()))?
+            .edges()
+            .iter()
+            .find(|&edge| predicate(edge))
+            .ok_or(GraphError::EdgeNotFound(port_id.clone()))
     }
 
     pub fn edge_for_port(&self, port_id: PortId) -> Result<&Edge, GraphError> {

@@ -1,5 +1,5 @@
 use quakk::{
-    Function, FunctionDef, NodeTrait, Number, Quakk, Text,
+    Function, FunctionDef, NodeTrait, Number, PortId, Quakk, Text,
     numeric::{Arithmetics, ArithmeticsOperation, NumericConstant},
     text::{TextConstant, TextSplit},
 };
