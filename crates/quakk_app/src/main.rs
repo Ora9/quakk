@@ -12,12 +12,12 @@ use gpui_component::{
 use gpui_component_assets::Assets;
 use quakk_app::{GraphView, MenuBar, Picker, PickerItem};
 
-actions!(quakk, [Quit, ShowAbout, ShowCommandPalette, Debug]);
+actions!(quakk, [Quit, ToggleAbout, ToggleCommandPalette, Debug]);
 
 pub fn init(cx: &mut App) {
     cx.bind_keys([
-        KeyBinding::new("ctrl-p", ShowCommandPalette, None),
-        KeyBinding::new("alt-a", ShowAbout, None),
+        KeyBinding::new("ctrl-p", ToggleCommandPalette, None),
+        KeyBinding::new("alt-a", ToggleAbout, None),
     ]);
 }
 
@@ -32,17 +32,17 @@ impl QuakkApp {
     pub const APP_TITLE: &'static str = "Quakk";
     pub const APP_ID: &'static str = "quakk";
 
-    fn show_about(&mut self, _: &ShowAbout, _window: &mut Window, _cx: &mut Context<Self>) {
-        dbg!("about");
+    fn toggle_about(&mut self, _: &ToggleAbout, _window: &mut Window, _cx: &mut Context<Self>) {
+        dbg!("toggle about");
     }
 
-    fn show_command_palette(
+    fn toggle_command_palette(
         &mut self,
-        _: &ShowCommandPalette,
+        _: &ToggleCommandPalette,
         window: &mut Window,
         cx: &mut Context<Self>,
     ) {
-        dbg!("command_palette");
+        dbg!("toggle command_palette");
 
         self.command_palette = Some(cx.new(|cx| {
             Picker::new(
@@ -70,8 +70,8 @@ impl Render for QuakkApp {
 
         div()
             .track_focus(&self.focus_handle)
-            .on_action(cx.listener(Self::show_command_palette))
-            .on_action(cx.listener(Self::show_about))
+            .on_action(cx.listener(Self::toggle_command_palette))
+            .on_action(cx.listener(Self::toggle_about))
             .size_full()
             .child(
                 MenuBar::new().child(
