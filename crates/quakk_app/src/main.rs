@@ -2,6 +2,7 @@ use gpui::{
     App, AppContext, Entity, KeyBinding, TitlebarOptions, Window, WindowOptions, actions, div,
 };
 use gpui::{FocusHandle, prelude::*};
+use gpui_component::WindowExt;
 use gpui_component::menu::DropdownMenu;
 use gpui_component::{
     Root,
@@ -24,8 +25,7 @@ pub fn init(cx: &mut App) {
 // #[derive(Debug)]
 pub struct QuakkApp {
     pub(crate) focus_handle: FocusHandle,
-
-    command_palette: Option<Entity<Picker>>,
+    // command_palette: Option<Entity<Picker>>,
 }
 
 impl QuakkApp {
@@ -44,7 +44,7 @@ impl QuakkApp {
     ) {
         dbg!("toggle command_palette");
 
-        self.command_palette = Some(cx.new(|cx| {
+        cx.new(|cx| {
             Picker::new(
                 vec![
                     PickerItem::new("Patate"),
@@ -55,12 +55,8 @@ impl QuakkApp {
                 window,
                 cx,
             )
-        }));
-
-        // window.open_dialog(cx, move |dialog, _, _| {
-        //     dialog.child(self.command_palette.clone().unwrap())
-        //     // dialog.title("Test dialog").child("Hello from dialog!")
-        // });
+        });
+        // dialog.title("Test dialog").child("Hello from dialog!")
     }
 }
 
@@ -117,8 +113,6 @@ fn main() {
         let focus_handle = cx.focus_handle();
         let quakk_app = cx.new(|_| QuakkApp {
             focus_handle: focus_handle,
-
-            command_palette: None,
         });
 
         cx.on_action(|_: &Quit, cx| cx.quit());

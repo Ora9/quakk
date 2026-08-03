@@ -1,7 +1,8 @@
 use gpui::Window;
 use gpui::{Action, App, Entity, FocusHandle, Length, SharedString, prelude::*, rems};
+use gpui_component::dialog::Dialog;
 use gpui_component::input::InputState;
-use gpui_component::v_flex;
+use gpui_component::{WindowExt, v_flex};
 
 pub struct PickerItem {
     text: SharedString,
@@ -59,7 +60,12 @@ impl Picker {
 }
 
 impl Render for Picker {
-    fn render(&mut self, _window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
-        v_flex().w(rems(34.)).child(self.input_state.clone())
+    fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        Dialog::new(cx).title("picker").child("content")
+
+        // window.open_dialog(cx, |dialog, _, _| {
+        //     dialog.title("picker").child("content")
+        //     // v_flex().w(rems(34.)).child(self.input_state.clone())
+        // })
     }
 }
